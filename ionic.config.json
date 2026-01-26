@@ -1,0 +1,7 @@
+{
+  "name": "front_GreenBox0.2",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
