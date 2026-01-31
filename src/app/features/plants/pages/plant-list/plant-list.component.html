@@ -1,0 +1,101 @@
+<ion-content class="plants-content" [scrollEvents]="true" [fullscreen]="true">
+
+  <!-- Header -->
+  <div class="plants-header">
+    <ion-button fill="clear" class="back-button" (click)="onBackClick()">
+      <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+    </ion-button>
+
+    <div class="header-content">
+      <h1 class="header-title">Perfiles de Plantas</h1>
+      <p class="header-subtitle">Selecciona el tipo de cultivo</p>
+    </div>
+  </div>
+
+  <!-- Planta Activa -->
+  <div class="active-plant-card" *ngIf="activePlant">
+    <div class="active-badge">
+      <ion-icon name="checkmark-circle"></ion-icon> Planta Activa
+    </div>
+
+    <div class="active-plant-content">
+      <div class="plant-image-large" [style.background-image]="'url(' + activePlant.imageUrl + ')'">
+      </div>
+
+      <div class="active-plant-info">
+        <h2>{{ activePlant.name }}</h2>
+        <p class="plant-type">{{ activePlant.type }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filter-section">
+    <h3 class="section-title">Explorar por tipo</h3>
+
+    <div class="filter-chips">
+      <ion-chip [class.active]="selectedFilter === 'all'" (click)="onFilterChange('all')">
+        <ion-label>Todos</ion-label>
+      </ion-chip>
+
+      <ion-chip [class.active]="selectedFilter === 'Hoja Verde'" (click)="onFilterChange('Hoja Verde')">
+        <ion-label>Hojas Verdes</ion-label>
+      </ion-chip>
+
+      <ion-chip [class.active]="selectedFilter === 'Fruto'" (click)="onFilterChange('Fruto')">
+        <ion-label>Frutos</ion-label>
+      </ion-chip>
+
+      <ion-chip [class.active]="selectedFilter === 'Hierba Aromática'" (click)="onFilterChange('Hierba Aromática')">
+        <ion-label>Hierbas</ion-label>
+      </ion-chip>
+    </div>
+  </div>
+
+  <!-- Grid de Plantas -->
+  <div class="plants-grid">
+    <div class="plant-card" *ngFor="let plant of filteredPlants" [class.active]="plant.isActive"
+      (click)="onPlantSelect(plant)">
+
+      <div class="plant-card-header">
+        <div class="plant-image" [style.background-image]="'url(' + plant.imageUrl + ')'">
+        </div>
+
+        <ion-badge [color]="getDifficultyColor(plant.difficulty)" class="difficulty-badge">
+          {{ plant.difficulty }}
+        </ion-badge>
+      </div>
+
+      <div class="plant-card-body">
+        <h3 class="plant-name">{{ plant.name }}</h3>
+        <p class="plant-type-label">{{ plant.type }}</p>
+
+        <div class="benefits-section">
+          <div class="benefit-tag" *ngFor="let benefit of plant.benefits?.slice(0,2)">
+            {{ benefit }}
+          </div>
+        </div>
+      </div>
+
+      <div class="plant-card-footer">
+        <ion-button expand="block" size="small" [fill]="plant.isActive ? 'solid' : 'outline'"
+          [color]="plant.isActive ? 'success' : 'primary'">
+          <ion-icon [name]="plant.isActive ? 'checkmark-circle' : 'add-circle-outline'" slot="start">
+          </ion-icon>
+          {{ plant.isActive ? 'Activa' : 'Seleccionar' }}
+        </ion-button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Consejo -->
+  <div class="info-section">
+    <h3 class="section-title">💡 Consejo</h3>
+    <p class="info-text">
+      Selecciona el perfil de planta que estás cultivando para que GREENBOX
+      ajuste automáticamente los parámetros óptimos de monitoreo y alertas.
+    </p>
+  </div>
+
+</ion-content>

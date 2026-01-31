@@ -1,0 +1,14 @@
+<div class="sensor-card-compact">
+  <div class="sensor-header-compact">
+    <img [src]="iconPath" [alt]="title" class="sensor-icon-compact">
+    <span class="sensor-title-compact">{{ title }}</span>
+  </div>
+  
+  <div class="sensor-value-compact">
+    {{ value | number:'1.1-1' }}{{ unit }}
+  </div>
+  
+  <div class="sensor-status-compact" [ngClass]="status">
+    {{ statusText }}
+  </div>
+</div>

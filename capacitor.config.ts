@@ -3,7 +3,11 @@ import type { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'io.ionic.starter',
   appName: 'front_GreenBox0.2',
-  webDir: 'www'
+  webDir: 'www',
+  server: {
+    androidScheme: 'http',
+    allowNavigation: ['172.16.1.164']
+  }
 };
 
 export default config;

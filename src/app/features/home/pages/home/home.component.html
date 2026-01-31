@@ -1,0 +1,151 @@
+<ion-content class="home-content" fullscreen="true">
+
+  <!-- Pull to Refresh -->
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Header -->
+  <div class="page-header">
+    <h1 class="page-title">Salud de tu Planta</h1>
+    <div class="header-buttons">
+      <button class="guide-button" (click)="onGuideClick()" title="Guía de Cuidados">
+        <ion-icon name="help-circle-outline"></ion-icon>
+      </button>
+      <button class="logout-button" (click)="onLogout()" title="Cerrar Sesión">
+        <ion-icon name="log-out-outline"></ion-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <app-loading-spinner *ngIf="isLoading" message="Cargando datos...">
+  </app-loading-spinner>
+
+  <!-- Contenido -->
+  <div *ngIf="!isLoading" class="content-wrapper">
+
+    <!-- Planta Activa -->
+    <div class="plant-card" *ngIf="activePlant">
+      <div class="plant-card-header">
+        <div class="plant-info">
+          <h2 class="plant-name">{{ activePlant.name }}</h2>
+        </div>
+      </div>
+
+      <div class="plant-image-container">
+        <img [src]="activePlant.imageUrl" [alt]="activePlant.name" class="plant-image" (error)="onImageError($event)">
+
+        <!-- Botón cambiar planta -->
+        <button class="change-plant-btn-overlay" (click)="onChangePlantClick()">
+          <ion-icon name="swap"></ion-icon>
+          Cambiar Planta
+        </button>
+      </div>
+    </div>
+
+    <!-- Sin Planta -->
+    <div class="no-plant-card" *ngIf="!activePlant" (click)="onChangePlantClick()">
+      <img src="assets/icon/plan.png" alt="No Planta" class="tab-icon no-plant-icon">
+      <h3>No hay planta seleccionada</h3>
+      <p>Toca aquí para elegir tu planta</p>
+    </div>
+
+    <!-- Estado General -->
+    <div class="plant-status-bar" *ngIf="activePlant">
+      <div class="status-label">Estado de la Planta</div>
+      <div class="status-indicator">
+        <div class="status-bar">
+          <div class="status-fill" [ngClass]="plantHealthStatus"></div>
+        </div>
+        <div class="status-text" [ngClass]="plantHealthStatus">
+          {{ plantHealthText }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Grid de Sensores -->
+    <div class="sensors-grid-compact">
+      <app-sensor-card title="Temperatura" [value]="sensorData.temp" unit="°C" iconPath="assets/icon/temperatura.png"
+        [status]="getSensorStatus('temp')" [statusText]="getSensorStatusText('temp')">
+      </app-sensor-card>
+
+      <app-sensor-card title="Humedad" [value]="sensorData.hum" unit="%" iconPath="assets/icon/humedad.png"
+        [status]="getSensorStatus('hum')" [statusText]="getSensorStatusText('hum')">
+      </app-sensor-card>
+
+      <app-sensor-card title="Luz" [value]="sensorData.light" unit="%" iconPath="assets/icon/luz.png"
+        [status]="getSensorStatus('light')" [statusText]="getSensorStatusText('light')">
+      </app-sensor-card>
+
+      <app-sensor-card title="Nivel de Agua" [value]="sensorData.water" unit="%" iconPath="assets/icon/agua.png"
+        [status]="getSensorStatus('water')" [statusText]="getSensorStatusText('water')">
+      </app-sensor-card>
+
+      <app-sensor-card title="Humedad Suelo" [value]="sensorData.soilMoisture" unit="%" iconPath="assets/icon/humedad.png"
+        [status]="getSensorStatus('soilMoisture')" [statusText]="getSensorStatusText('soilMoisture')">
+      </app-sensor-card>
+    </div>
+
+    <!-- Control Automático (LED y Bomba) -->
+    <div class="actuators-section" *ngIf="activePlant && actuatorStatus">
+      <div class="section-header">
+        <ion-icon name="settings-outline" class="section-icon"></ion-icon>
+        <h3 class="section-title">Control Automático</h3>
+      </div>
+
+      <div class="actuators-grid">
+        <!-- LED Status -->
+        <div class="actuator-card" [class.active]="actuatorStatus.led">
+          <div class="actuator-icon-wrapper led">
+            <ion-icon name="bulb" class="actuator-icon"></ion-icon>
+            <div class="status-pulse" *ngIf="actuatorStatus.led"></div>
+          </div>
+          <div class="actuator-info">
+            <span class="actuator-label">Iluminación LED</span>
+            <span class="actuator-status" [class.on]="actuatorStatus.led">
+              {{ actuatorStatus.led ? 'Encendido' : 'Apagado' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Pump Status -->
+        <div class="actuator-card" [class.active]="actuatorStatus.pump">
+          <div class="actuator-icon-wrapper pump">
+            <ion-icon name="water" class="actuator-icon"></ion-icon>
+            <div class="status-pulse" *ngIf="actuatorStatus.pump"></div>
+          </div>
+          <div class="actuator-info">
+            <span class="actuator-label">Bomba de Agua</span>
+            <span class="actuator-status" [class.on]="actuatorStatus.pump">
+              {{ actuatorStatus.pump ? 'Activa' : 'Inactiva' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Watering Info -->
+      <div class="watering-info-card">
+        <div class="watering-stat">
+          <ion-icon name="water-outline" class="stat-icon"></ion-icon>
+          <div class="stat-content">
+            <span class="stat-label">Riegos hoy</span>
+            <span class="stat-value">{{ actuatorStatus.wateringCount }}</span>
+          </div>
+        </div>
+        <div class="watering-stat" *ngIf="actuatorStatus.lastWateringDate">
+          <ion-icon name="time-outline" class="stat-icon"></ion-icon>
+          <div class="stat-content">
+            <span class="stat-label">Último riego</span>
+            <span class="stat-value">{{ actuatorStatus.lastWateringDate | date:'short' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</ion-content>
+
+<!-- Tab Bar -->
+<app-tab-bar [activeTab]="'home'" [unreadCount]="unreadCount" (tabClick)="onTabChange($event)">
+</app-tab-bar>

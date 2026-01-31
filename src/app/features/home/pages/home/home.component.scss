@@ -1,0 +1,457 @@
+.home-content {
+  --background: #f8f9fa;
+
+  .page-header {
+    padding: 60px 20px 24px;
+    padding-top: calc(30px + env(safe-area-inset-top));
+    background: #ffffff;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+
+    .page-title {
+      font-size: 26px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin: 0;
+      letter-spacing: -0.5px;
+      flex: 1;
+    }
+
+    .header-buttons {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .guide-button,
+    .logout-button {
+      background: linear-gradient(135deg, #f1f8f5 0%, #ffffff 100%);
+      border: 2px solid #5fb89a;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 6px rgba(95, 184, 154, 0.2);
+
+      ion-icon {
+        font-size: 24px;
+        color: #5fb89a;
+      }
+
+      &:active {
+        transform: scale(0.95);
+      }
+    }
+
+    .logout-button {
+      border-color: #ff6b6b;
+      background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%);
+      box-shadow: 0 2px 6px rgba(255, 107, 107, 0.2);
+
+      ion-icon {
+        color: #ff6b6b;
+      }
+    }
+  }
+
+  .content-wrapper {
+    padding: 16px;
+    padding-bottom: calc(90px + env(safe-area-inset-bottom));
+  }
+
+  .plant-card {
+    background: #ffffff;
+    border-radius: 16px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid #f0f0f0;
+
+    .plant-card-header {
+      padding: 16px;
+      background: #ffffff;
+      border-bottom: 1px solid #f5f5f5;
+
+      .plant-info {
+        .plant-name {
+          font-size: 20px;
+          font-weight: 700;
+          color: #1a1a1a;
+          margin: 0;
+        }
+      }
+    }
+
+    .plant-image-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px;
+      background: #ffffff;
+
+      .plant-image {
+        width: 100%;
+        max-width: 200px;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 16px;
+        border: 3px solid #5fb89a;
+        box-shadow: 0 4px 16px rgba(95, 184, 154, 0.2);
+        margin-bottom: 16px;
+      }
+
+      .change-plant-btn-overlay {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: #5fb89a;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 10px 20px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(95, 184, 154, 0.3);
+        transition: all 0.2s ease;
+
+        ion-icon {
+          font-size: 18px;
+        }
+
+        &:active {
+          transform: scale(0.96);
+        }
+      }
+    }
+  }
+
+  .no-plant-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 48px 24px;
+    margin-bottom: 16px;
+    text-align: center;
+    border: 2px dashed #e0e0e0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:active {
+      transform: scale(0.98);
+      background: #fafafa;
+      border-color: #5fb89a;
+    }
+
+    .no-plant-icon {
+      width: 56px;
+      height: 56px;
+      opacity: 0.8;
+      margin-bottom: 16px;
+    }
+
+    h3 {
+      font-size: 17px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin: 0 0 8px;
+    }
+
+    p {
+      font-size: 13px;
+      color: #666;
+      font-weight: 500;
+      margin: 0;
+    }
+  }
+
+  .plant-status-bar {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    border: 1px solid #f0f0f0;
+
+    .status-label {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .status-bar {
+      flex: 1;
+      height: 10px;
+      background: #f5f5f5;
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+
+      .status-fill {
+        height: 100%;
+        border-radius: 10px;
+        position: absolute;
+        left: 0;
+        top: 0;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+        &.good {
+          width: 100%;
+          background: linear-gradient(90deg, #5fb89a 0%, #4caf50 100%);
+        }
+
+        &.bad {
+          width: 40%;
+          background: linear-gradient(90deg, #ff9800 0%, #ffa726 100%);
+        }
+      }
+    }
+
+    .status-text {
+      font-size: 13px;
+      font-weight: 700;
+      min-width: 80px;
+      text-align: right;
+
+      &.good {
+        color: #4caf50;
+      }
+
+      &.bad {
+        color: #ff9800;
+      }
+    }
+  }
+
+  .sensors-grid-compact {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .actuators-section {
+    margin-top: 8px;
+    margin-bottom: 16px;
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      padding: 0 4px;
+
+      .section-icon {
+        font-size: 22px;
+        color: #5fb89a;
+      }
+
+      .section-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #2c2c2c;
+        margin: 0;
+      }
+    }
+
+    .actuators-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .actuator-card {
+      background: white;
+      border-radius: 20px;
+      padding: 20px 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: #e0e0e0;
+        transition: all 0.3s ease;
+      }
+
+      &.active {
+        box-shadow: 0 4px 20px rgba(95, 184, 154, 0.25);
+
+        &::before {
+          background: linear-gradient(90deg, #5fb89a, #4caf50);
+        }
+      }
+
+      .actuator-icon-wrapper {
+        width: 56px;
+        height: 56px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 12px;
+        position: relative;
+        transition: all 0.3s ease;
+
+        &.led {
+          background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+        }
+
+        &.pump {
+          background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        }
+
+        .actuator-icon {
+          font-size: 28px;
+          color: #999;
+          transition: all 0.3s ease;
+        }
+
+        .status-pulse {
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          border-radius: 16px;
+          animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+      }
+
+      &.active {
+        .actuator-icon-wrapper.led {
+          background: linear-gradient(135deg, #ffd54f 0%, #ffb300 100%);
+          box-shadow: 0 4px 16px rgba(255, 193, 7, 0.4);
+
+          .actuator-icon {
+            color: #f57f17;
+          }
+
+          .status-pulse {
+            background: rgba(255, 193, 7, 0.3);
+          }
+        }
+
+        .actuator-icon-wrapper.pump {
+          background: linear-gradient(135deg, #4fc3f7 0%, #0288d1 100%);
+          box-shadow: 0 4px 16px rgba(3, 169, 244, 0.4);
+
+          .actuator-icon {
+            color: #01579b;
+          }
+
+          .status-pulse {
+            background: rgba(3, 169, 244, 0.3);
+          }
+        }
+      }
+
+      .actuator-info {
+        text-align: center;
+
+        .actuator-label {
+          display: block;
+          font-size: 13px;
+          font-weight: 600;
+          color: #666;
+          margin-bottom: 6px;
+        }
+
+        .actuator-status {
+          display: inline-block;
+          font-size: 12px;
+          font-weight: 600;
+          color: #999;
+          padding: 4px 12px;
+          border-radius: 12px;
+          background: #f5f5f5;
+          transition: all 0.3s ease;
+
+          &.on {
+            color: white;
+            background: linear-gradient(90deg, #5fb89a, #4caf50);
+            box-shadow: 0 2px 8px rgba(95, 184, 154, 0.3);
+          }
+        }
+      }
+    }
+
+    .watering-info-card {
+      background: linear-gradient(135deg, #ffffff 0%, #f8fffe 100%);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      display: flex;
+      gap: 16px;
+
+      .watering-stat {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .stat-icon {
+          font-size: 24px;
+          color: #5fb89a;
+        }
+
+        .stat-content {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+
+          .stat-label {
+            font-size: 11px;
+            font-weight: 500;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+
+          .stat-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: #2c2c2c;
+          }
+        }
+      }
+    }
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.9);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.1);
+    opacity: 0.5;
+  }
+
+  100% {
+    transform: scale(0.9);
+    opacity: 1;
+  }
+}

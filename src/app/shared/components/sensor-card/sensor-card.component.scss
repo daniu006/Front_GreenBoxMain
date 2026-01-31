@@ -1,0 +1,66 @@
+.sensor-card-compact {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 18px 16px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  border: 1px solid #f0f0f0;
+  transition: all 0.2s ease;
+
+  &:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  }
+}
+
+.sensor-header-compact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.sensor-icon-compact {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  opacity: 0.7;
+}
+
+.sensor-title-compact {
+  font-size: 11px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sensor-value-compact {
+  font-size: 26px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 10px;
+  line-height: 1;
+  letter-spacing: -1px;
+}
+
+.sensor-status-compact {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 8px;
+  display: inline-block;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+
+  &.good {
+    background: #f1f8f5;
+    color: #2e7d5e;
+    border: 1px solid #c8e6d7;
+  }
+
+  &.bad {
+    background: #fff5f5;
+    color: #d32f2f;
+    border: 1px solid #ffcdd2;
+  }
+}

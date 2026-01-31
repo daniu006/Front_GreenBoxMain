@@ -1,0 +1,22 @@
+<div class="custom-header">
+  <ion-button 
+    *ngIf="showBackButton" 
+    fill="clear" 
+    class="back-button" 
+    (click)="onBackClick()">
+    <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+  </ion-button>
+
+  <div class="header-content">
+    <h1 class="header-title">{{ title }}</h1>
+    <p *ngIf="subtitle" class="header-subtitle">{{ subtitle }}</p>
+  </div>
+
+  <ion-button 
+    *ngIf="showHelpButton" 
+    fill="clear" 
+    class="help-button" 
+    (click)="onHelpClick()">
+    <ion-icon name="help-circle-outline" slot="icon-only"></ion-icon>
+  </ion-button>
+</div>

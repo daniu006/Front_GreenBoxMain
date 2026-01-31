@@ -1,0 +1,103 @@
+<ion-content class="plant-guide-content" [scrollEvents]="true" [fullscreen]="true">
+
+  <!-- Header Verde -->
+  <div class="plant-guide-header">
+    <ion-button fill="clear" class="back-button" (click)="goBack()">
+      <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+    </ion-button>
+    <div class="header-content">
+      <h1 class="header-title">Guía de Cultivo</h1>
+      <p class="header-subtitle">
+        <ion-icon name="book-outline"></ion-icon>
+        Manual paso a paso
+      </p>
+    </div>
+  </div>
+
+  <!-- Pull to Refresh -->
+  <ion-refresher slot="fixed" (ionRefresh)="refreshData($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-container">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+    <p>Cargando guía...</p>
+  </div>
+
+  <!-- Información de la Planta -->
+  <div *ngIf="!isLoading && activePlant" class="plant-info-card">
+    <div class="plant-header">
+      <img [src]="activePlant.imageUrl" [alt]="activePlant.name" class="plant-image"
+        onerror="this.src='assets/plants/default-plant.jpg'">
+      <div class="plant-info">
+        <h2>{{ activePlant.name }}</h2>
+        <span class="plant-type">{{ activePlant.type }}</span>
+      </div>
+    </div>
+    <p class="plant-description" *ngIf="activePlant.description">
+      {{ activePlant.description }}
+    </p>
+  </div>
+
+  <!-- Pasos de la Guía -->
+  <div *ngIf="!isLoading && guideSteps.length > 0" class="guide-steps-section">
+    <h3 class="section-title">Pasos del Cultivo</h3>
+
+    <div class="step-card" *ngFor="let step of guideSteps">
+      <div class="step-header">
+        <div class="step-number">{{ step.step }}</div>
+        <div class="step-title-wrapper">
+          <span class="step-label">Paso {{ step.step }}</span>
+          <h4 class="step-title">{{ step.title }}</h4>
+        </div>
+      </div>
+
+      <div class="step-content">
+        <p class="step-description">{{ step.description }}</p>
+
+        <img *ngIf="step.image" [src]="step.image" [alt]="step.title" class="step-image"
+          onerror="this.style.display='none'">
+
+        <!-- Tips opcionales si vienen del backend -->
+        <div class="step-tips" *ngIf="step.tips && step.tips.length > 0">
+          <div class="tips-label">
+            <ion-icon name="bulb-outline"></ion-icon>
+            Consejos
+          </div>
+          <ul>
+            <li *ngFor="let tip of step.tips">{{ tip }}</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sin planta seleccionada -->
+  <div *ngIf="!isLoading && !activePlant" class="no-guides">
+    <h3>No hay planta seleccionada</h3>
+    <p>Selecciona una planta en tu perfil para ver su guía de cultivo</p>
+    <ion-button expand="block" fill="outline" (click)="goToPlantSelection()">
+      <ion-icon name="leaf-outline" slot="start"></ion-icon>
+      Seleccionar Planta
+    </ion-button>
+  </div>
+
+  <!-- Sin guías disponibles -->
+  <div *ngIf="!isLoading && activePlant && guideSteps.length === 0" class="no-guides">
+    <h3>No hay guía disponible</h3>
+    <p>Aún no tenemos pasos registrados para {{ activePlant.name }}</p>
+  </div>
+
+  <!-- Soporte -->
+  <div class="support-card" *ngIf="!isLoading">
+    <ion-icon name="help-circle-outline"></ion-icon>
+    <h3>¿Necesitas más ayuda?</h3>
+    <p>Estamos aquí para ayudarte con tu cultivo inteligente</p>
+    <ion-button expand="block" fill="outline" (click)="openSupport()">
+      <ion-icon name="mail-outline" slot="start"></ion-icon>
+      Contactar Soporte
+    </ion-button>
+  </div>
+
+</ion-content>

@@ -1,0 +1,103 @@
+<ion-content class="history-content" [scrollEvents]="true" [fullscreen]="true">
+
+  <!-- Header -->
+  <app-header title="Historial" [subtitle]="getSubtitle()" [showBackButton]="true" (backClick)="onBackClick()">
+  </app-header>
+
+  <!-- Selector de Rango -->
+  <div class="range-selector">
+    <ion-segment [value]="selectedRange" mode="ios" (ionChange)="onRangeChange($event)">
+      <ion-segment-button value="24h">
+        <ion-label>Día</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="7d">
+        <ion-label>Semana</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="30d">
+        <ion-label>Mes</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </div>
+
+  <!-- Pull to Refresh -->
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Loading -->
+  <app-loading-spinner *ngIf="isLoading" message="Cargando historial...">
+  </app-loading-spinner>
+
+  <!-- Charts Container -->
+  <div class="charts-container" *ngIf="!isLoading">
+
+    <!-- Temperatura -->
+    <div class="chart-card">
+      <div class="chart-title">
+        <img src="assets/icon/temperatura.png" class="chart-icon" alt="Temperatura">
+        Temperatura
+      </div>
+      <div class="chart-box gradient-green">
+        <div class="bars-container">
+          <div class="bar-wrapper" *ngFor="let item of temperatureData">
+            <div class="bar bar-temp" [style.height.%]="item.percentage"></div>
+            <div class="bar-label">{{item.value}}°</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Humedad -->
+    <div class="chart-card">
+      <div class="chart-title">
+        <img src="assets/icon/humedad.png" class="chart-icon" alt="Humedad">
+        Humedad
+      </div>
+      <div class="chart-box gradient-blue">
+        <div class="bars-container">
+          <div class="bar-wrapper" *ngFor="let item of humidityData">
+            <div class="bar bar-humidity" [style.height.%]="item.percentage"></div>
+            <div class="bar-label">{{item.value}}%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Luz -->
+    <div class="chart-card">
+      <div class="chart-title">
+        <img src="assets/icon/luz.png" class="chart-icon" alt="Luz">
+        Luz
+      </div>
+      <div class="chart-box gradient-yellow">
+        <div class="bars-container">
+          <div class="bar-wrapper" *ngFor="let item of lightData">
+            <div class="bar bar-light" [style.height.%]="item.percentage"></div>
+            <div class="bar-label">{{item.value}}%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nivel de Agua -->
+    <div class="chart-card">
+      <div class="chart-title">
+        <img src="assets/icon/agua.png" class="chart-icon" alt="Agua">
+        Nivel de Agua
+      </div>
+      <div class="chart-box gradient-blue">
+        <div class="bars-container">
+          <div class="bar-wrapper" *ngFor="let item of waterData">
+            <div class="bar bar-water" [style.height.%]="item.percentage"></div>
+            <div class="bar-label">{{item.value}}%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</ion-content>
+
+<!-- Tab Bar -->
+<app-tab-bar [activeTab]="'history'" [unreadCount]="0" (tabClick)="onTabChange($event)">
+</app-tab-bar>

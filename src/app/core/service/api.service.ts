@@ -1,0 +1,302 @@
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import { SensorData, SensorReading, ActuatorStatus, Alert } from '../models/api.models';
+import { ApiError, HttpStatusCode } from '../models/api-error';
+
+@Injectable({ providedIn: 'root' })
+export class ApiService {
+
+    private base = environment.apiUrl;
+
+    constructor(private http: HttpClient) { }
+
+    /**
+     * Maneja errores HTTP y los convierte en ApiError con mensajes específicos
+     */
+    private handleHttpError(err: any, context: string, defaultMessage: string): ApiError {
+        if (err instanceof HttpErrorResponse) {
+            const statusCode = err.status;
+            let userMessage = defaultMessage;
+
+            switch (statusCode) {
+                case HttpStatusCode.BAD_REQUEST:
+                    userMessage = `Solicitud inválida: ${err.error?.message || 'Verifica los datos enviados'}`;
+                    break;
+                case HttpStatusCode.UNAUTHORIZED:
+                    userMessage = 'No autorizado. Por favor, inicia sesión nuevamente';
+                    break;
+                case HttpStatusCode.FORBIDDEN:
+                    userMessage = 'No tienes permisos para realizar esta acción';
+                    break;
+                case HttpStatusCode.NOT_FOUND:
+                    userMessage = `${context} no encontrado`;
+                    break;
+                case HttpStatusCode.CONFLICT:
+                    userMessage = `Conflicto: ${err.error?.message || 'Los datos ya existen'}`;
+                    break;
+                case HttpStatusCode.INTERNAL_SERVER_ERROR:
+                    userMessage = 'Error del servidor. Intenta de nuevo más tarde';
+                    break;
+                case HttpStatusCode.SERVICE_UNAVAILABLE:
+                    userMessage = 'Servicio no disponible. Intenta de nuevo más tarde';
+                    break;
+                case 0:
+                    userMessage = 'Error de conexión. Verifica tu internet';
+                    break;
+                default:
+                    userMessage = defaultMessage;
+            }
+
+            return new ApiError(
+                statusCode,
+                userMessage,
+                err.message,
+                err.url || undefined
+            );
+        }
+
+        // Error no HTTP (timeout, red, etc.)
+        return new ApiError(
+            0,
+            'Error de conexión. Verifica tu internet',
+            err.message || String(err)
+        );
+        console.error('[API] 🚨 Error Fatal:', err);
+        return new ApiError(0, 'Error de conexión', err.message);
+    }
+
+    /* ========== SENSOR DATA ENDPOINTS ========== */
+
+    /** Datos más recientes de un box (dispositivo físico) */
+    async getLatestByBox(boxId: string): Promise<SensorData> {
+        try {
+            const res = await firstValueFrom(
+                this.http.get<any>(`${this.base}/sensors/latest/${boxId}`)
+            );
+
+            // Validar si la respuesta es null o vacía (ESP32 no ha enviado datos)
+            if (!res || typeof res !== 'object') {
+                console.warn(`[API] No hay datos disponibles para el box ${boxId}`);
+                return { temp: 0, hum: 0, light: 0, water: 0, soilMoisture: 0, timestamp: new Date().toISOString() }; // [NEW]
+            }
+
+            return {
+                temp: res.temp || 0,
+                hum: res.hum || 0,
+                light: res.light || 0,
+                water: res.water || 0,
+                soilMoisture: res.soilMoisture || 0, // [NEW] Mapear dato del backend
+                timestamp: res.timestamp || new Date().toISOString()
+            };
+        } catch (err) {
+            const apiError = this.handleHttpError(err, `Box ${boxId}`, 'Error obteniendo datos del sensor');
+            console.error(`[API] ${apiError.userMessage}`, apiError.technicalMessage);
+            // Retornar datos vacíos en lugar de fallar
+            return { temp: 0, hum: 0, light: 0, water: 0, soilMoisture: 0, timestamp: new Date().toISOString() };
+        }
+    }
+
+    /** Historial de un box ('24h', '7d', '30d') */
+    async getHistoryByBox(boxId: string, period: '24h' | '7d' | '30d'): Promise<SensorReading[]> {
+        try {
+            const res = await firstValueFrom(
+                this.http.get<SensorReading[]>(`${this.base}/sensors/history/${boxId}/${period}`)
+            );
+            return res;
+        } catch (err) {
+            const apiError = this.handleHttpError(err, `Historial del box ${boxId}`, 'Error obteniendo historial');
+            console.error(`[API] ${apiError.userMessage}`, apiError.technicalMessage);
+            return [];
+        }
+    }
+
+    /* ========== ACTUATOR STATUS ========== */
+
+    /** Obtener estado de actuadores (LED y Bomba) */
+    async getActuatorStatus(boxId: string): Promise<ActuatorStatus | null> {
+        try {
+            const res = await firstValueFrom(
+                this.http.get<ActuatorStatus>(`${this.base}/sensors/actuators/${boxId}`)
+            );
+
+            // Validar si la respuesta es null o no tiene los campos requeridos
+            if (!res || typeof res !== 'object') {
+                console.warn(`[API] No hay datos de actuadores para el box ${boxId}`);
+                return null;
+            }
+
+            // Validar que tenga los campos mínimos requeridos
+            if (typeof res.led !== 'boolean' || typeof res.pump !== 'boolean') {
+                console.warn(`[API] Respuesta de actuadores incompleta para el box ${boxId}`, res);
+                return null;
+            }
+
+            return res;
+        } catch (err) {
+            const apiError = this.handleHttpError(err, `Actuadores del box ${boxId}`, 'Error obteniendo estado de actuadores');
+            console.error(`[API] ${apiError.userMessage}`, apiError.technicalMessage);
+            return null;
+        }
+    }
+
+    /** Control manual de actuadores (opcional) */
+    async controlActuators(boxId: string, led?: boolean, pump?: boolean) {
+        try {
+            return await firstValueFrom(
+                this.http.post(`${this.base}/box/${boxId}/actuators`, { led, pump })
+            );
+        } catch (err) {
+            const apiError = this.handleHttpError(err, `Control de actuadores`, 'Error controlando actuadores');
+            console.error(`[API] ${apiError.userMessage}`, apiError.technicalMessage);
+            throw apiError;
+        }
+    }
+
+    /* ========== AUTHENTICATION ========== */
+
+    /** Validar código de acceso (login) */
+    async validateCode(code: string): Promise<{ valid: boolean; boxId?: string }> {
+        try {
+            console.log('[API] 🔐 Validando código:', code);
+            console.log('[API] 📡 URL del backend:', `${this.base}/auth/validate`);
+            console.log('[API] 📤 Payload enviado:', { code });
+
+            const res = await firstValueFrom(
+                this.http.post<{ valid: boolean; boxId?: string }>(`${this.base}/auth/validate`, { code })
+            );
+
+            console.log('[API] 📥 Respuesta del backend:', res);
+
+            // Si es válido y tiene boxId, guardarlo en localStorage
+            if (res.valid && res.boxId) {
+                console.log('[API] ✅ Código válido. BoxId:', res.boxId);
+                localStorage.setItem('selectedBoxId', res.boxId);
+            } else {
+                console.warn('[API] ❌ Código inválido o sin boxId:', res);
+            }
+
+            return res;
+        } catch (err) {
+            const apiError = this.handleHttpError(err, 'Código de acceso', 'Error validando código');
+            console.error(`[API] 💥 Error en validateCode:`, JSON.stringify({
+                userMessage: apiError.userMessage,
+                technicalMessage: apiError.technicalMessage,
+                statusCode: apiError.statusCode,
+                endpoint: apiError.endpoint,
+                originalError: err
+            }, null, 2));
+
+            // Siempre retornar inválido en caso de error
+            return { valid: false };
+        }
+    }
+
+    /* ========== BOX OPERATIONS ========== */
+
+    /** Actualizar la planta de un box */
+    async updateBoxPlant(boxId: string, plantId: number): Promise<any> {
+        try {
+            return await firstValueFrom(
+                this.http.patch(`${this.base}/box/${boxId}`, { plantId })
+            );
+        } catch (err) {
+            const apiError = this.handleHttpError(err, `Box ${boxId}`, `Error actualizando planta (ID: ${plantId})`);
+            console.error(`[API] ${apiError.userMessage}`, apiError.technicalMessage);
+            throw apiError;
+        }
+    }
+
+    /** Obtener información completa del box */
+    async getBoxInfo(boxId: string): Promise<any> {
+        try {
+            return await firstValueFrom(
+                this.http.get(`${this.base}/box/${boxId}`)
+            );
+        } catch (err) {
+            const apiError = this.handleHttpError(err, `Box ${boxId}`, 'Error obteniendo información del box');
+            console.error(`[API] ${apiError.userMessage}`, apiError.technicalMessage);
+            throw apiError;
+        }
+    }
+
+    /* ========== NOTIFICATION OPERATIONS ========== */
+
+    /** Obtener todas las notificaciones de un box */
+    async getNotifications(boxId: string): Promise<Alert[]> {
+        try {
+            const response = await firstValueFrom(
+                this.http.get<Alert[]>(`${this.base}/sensors/notifications/${boxId}`)
+            );
+
+            // Validar que la respuesta sea un array
+            if (!Array.isArray(response)) {
+                console.warn('Respuesta de notificaciones no es un array:', response);
+                return [];
+            }
+
+            // Validar que cada notificación tenga los campos requeridos
+            return response.filter(alert =>
+                alert &&
+                typeof alert.id === 'number' &&
+                typeof alert.message === 'string'
+            );
+        } catch (err) {
+            const apiError = this.handleHttpError(err, `Notificaciones del box ${boxId}`, 'Error obteniendo notificaciones');
+            console.error(`[API] ${apiError.userMessage}`, apiError.technicalMessage);
+            return [];
+        }
+    }
+
+    /** Obtener notificaciones activas (no resueltas) de un box */
+    async getActiveNotifications(boxId: string): Promise<Alert[]> {
+        try {
+            const allNotifications = await this.getNotifications(boxId);
+            return allNotifications.filter(alert => !alert.resolved);
+        } catch (err) {
+            const apiError = this.handleHttpError(err, `Notificaciones activas`, 'Error obteniendo notificaciones activas');
+            console.error(`[API] ${apiError.userMessage}`, apiError.technicalMessage);
+            return [];
+        }
+    }
+
+    /** Marcar una notificación como leída (resuelta) */
+    async markNotificationAsRead(notificationId: number): Promise<any> {
+        try {
+            return await firstValueFrom(
+                this.http.patch(`${this.base}/sensors/notifications/${notificationId}/read`, {})
+            );
+        } catch (err) {
+            const apiError = this.handleHttpError(err, `Notificación ${notificationId}`, 'Error marcando notificación como leída');
+            console.error(`[API] ${apiError.userMessage}`, apiError.technicalMessage);
+            throw apiError;
+        }
+    }
+
+    /** Marcar todas las notificaciones como leídas */
+    async markAllNotificationsAsRead(boxId: string): Promise<any> {
+        try {
+            return await firstValueFrom(
+                this.http.patch(`${this.base}/sensors/notifications/mark-all-read/${boxId}`, {})
+            );
+        } catch (err) {
+            const apiError = this.handleHttpError(err, `Notificaciones del box ${boxId}`, 'Error marcando todas las notificaciones');
+            console.error(`[API] ${apiError.userMessage}`, apiError.technicalMessage);
+            throw apiError;
+        }
+    }
+
+    /** Eliminar una notificación */
+    async deleteNotification(notificationId: number): Promise<any> {
+        try {
+            return await firstValueFrom(
+                this.http.delete(`${this.base}/sensors/notifications/${notificationId}`)
+            );
+        } catch (err) {
+            const apiError = this.handleHttpError(err, `Notificación ${notificationId}`, 'Error eliminando notificación');
+            console.error(`[API] ${apiError.userMessage}`, apiError.technicalMessage);
+            throw apiError;
+        }
+    }
+}
