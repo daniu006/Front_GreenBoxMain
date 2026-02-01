@@ -40,13 +40,18 @@ export interface Box {
 export interface Plant {
     id: number;
     name: string;
+    type?: string;
+    imageUrl?: string;
+    difficulty?: string;
+    benefits?: string[];
+    isActive?: boolean;
     minTemperature: number;
     maxTemperature: number;
     minHumidity: number;
     maxHumidity: number;
     lightHours: number;
     minWaterLevel: number;
-    minSoilMoisture?: number; // [NEW]
+    minSoilMoisture?: number;
     wateringFrequency: number;
     createdAt: string;
 }
