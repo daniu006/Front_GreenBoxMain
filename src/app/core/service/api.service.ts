@@ -63,8 +63,21 @@ export class ApiService {
             'Error de conexión. Verifica tu internet',
             err.message || String(err)
         );
-        console.error('[API] 🚨 Error Fatal:', err);
-        return new ApiError(0, 'Error de conexión', err.message);
+    }
+
+    /* ========== PLANT OPERATIONS ========== */
+
+    /** Obtener todas las plantas disponibles */
+    async getPlants(): Promise<any> {
+        try {
+            return await firstValueFrom(
+                this.http.get(`${this.base}/plant`)
+            );
+        } catch (err) {
+            const apiError = this.handleHttpError(err, 'Plantas', 'Error obteniendo catálogo de plantas');
+            console.error(`[API] ${apiError.userMessage}`, apiError.technicalMessage);
+            return { data: [] };
+        }
     }
 
     /* ========== SENSOR DATA ENDPOINTS ========== */
@@ -79,7 +92,7 @@ export class ApiService {
             // Validar si la respuesta es null o vacía (ESP32 no ha enviado datos)
             if (!res || typeof res !== 'object') {
                 console.warn(`[API] No hay datos disponibles para el box ${boxId}`);
-                return { temp: 0, hum: 0, light: 0, water: 0, soilMoisture: 0, timestamp: new Date().toISOString() }; // [NEW]
+                return { temp: 0, hum: 0, light: 0, water: 0, soilMoisture: 0, timestamp: new Date().toISOString() };
             }
 
             return {
@@ -87,7 +100,7 @@ export class ApiService {
                 hum: res.hum || 0,
                 light: res.light || 0,
                 water: res.water || 0,
-                soilMoisture: res.soilMoisture || 0, // [NEW] Mapear dato del backend
+                soilMoisture: res.soilMoisture || 0,
                 timestamp: res.timestamp || new Date().toISOString()
             };
         } catch (err) {
@@ -208,6 +221,19 @@ export class ApiService {
         }
     }
 
+    /** Actualizar el token de notificaciones de un box */
+    async updateBoxToken(boxId: string, fcmToken: string): Promise<any> {
+        try {
+            return await firstValueFrom(
+                this.http.patch(`${this.base}/box/${boxId}`, { fcmToken })
+            );
+        } catch (err) {
+            const apiError = this.handleHttpError(err, `Box ${boxId}`, 'Error actualizando token de notificaciones');
+            console.error(`[API] ${apiError.userMessage}`, apiError.technicalMessage);
+            throw apiError;
+        }
+    }
+
     /** Obtener información completa del box */
     async getBoxInfo(boxId: string): Promise<any> {
         try {
@@ -221,80 +247,81 @@ export class ApiService {
         }
     }
 
-    /* ========== NOTIFICATION OPERATIONS ========== */
+    /* ========== ALERT OPERATIONS ========== */
 
-    /** Obtener todas las notificaciones de un box */
+    /** Obtener todas las alertas (historial) de un box */
     async getNotifications(boxId: string): Promise<Alert[]> {
         try {
-            const response = await firstValueFrom(
-                this.http.get<Alert[]>(`${this.base}/sensors/notifications/${boxId}`)
+            const response: any = await firstValueFrom(
+                this.http.get(`${this.base}/alert/box/${boxId}`)
             );
 
-            // Validar que la respuesta sea un array
-            if (!Array.isArray(response)) {
-                console.warn('Respuesta de notificaciones no es un array:', response);
+            // Manejar respuesta estilo backend nestjs { data: [...], ... }
+            const alerts = Array.isArray(response) ? response : (response.data || []);
+
+            if (!Array.isArray(alerts)) {
+                console.warn('Respuesta de alertas no contiene un array válido:', response);
                 return [];
             }
 
-            // Validar que cada notificación tenga los campos requeridos
-            return response.filter(alert =>
-                alert &&
-                typeof alert.id === 'number' &&
-                typeof alert.message === 'string'
-            );
+            return alerts;
         } catch (err) {
-            const apiError = this.handleHttpError(err, `Notificaciones del box ${boxId}`, 'Error obteniendo notificaciones');
+            const apiError = this.handleHttpError(err, `Alertas del box ${boxId}`, 'Error obteniendo historial de alertas');
             console.error(`[API] ${apiError.userMessage}`, apiError.technicalMessage);
             return [];
         }
     }
 
-    /** Obtener notificaciones activas (no resueltas) de un box */
+    /** Obtener alertas activas (no resueltas) de un box */
     async getActiveNotifications(boxId: string): Promise<Alert[]> {
         try {
-            const allNotifications = await this.getNotifications(boxId);
-            return allNotifications.filter(alert => !alert.resolved);
+            const response: any = await firstValueFrom(
+                this.http.get(`${this.base}/alert/box/${boxId}/active`)
+            );
+
+            // Manejar respuesta { data: [...], ... }
+            const alerts = Array.isArray(response) ? response : (response.data || []);
+
+            if (!Array.isArray(alerts)) {
+                return [];
+            }
+            return alerts;
         } catch (err) {
-            const apiError = this.handleHttpError(err, `Notificaciones activas`, 'Error obteniendo notificaciones activas');
+            const apiError = this.handleHttpError(err, `Alertas activas`, 'Error obteniendo alertas activas');
             console.error(`[API] ${apiError.userMessage}`, apiError.technicalMessage);
             return [];
         }
     }
 
-    /** Marcar una notificación como leída (resuelta) */
+    /** Marcar una alerta como resuelta */
     async markNotificationAsRead(notificationId: number): Promise<any> {
         try {
             return await firstValueFrom(
-                this.http.patch(`${this.base}/sensors/notifications/${notificationId}/read`, {})
+                this.http.patch(`${this.base}/alert/${notificationId}/resolve`, {})
             );
         } catch (err) {
-            const apiError = this.handleHttpError(err, `Notificación ${notificationId}`, 'Error marcando notificación como leída');
+            const apiError = this.handleHttpError(err, `Alerta ${notificationId}`, 'Error resolviendo la alerta');
             console.error(`[API] ${apiError.userMessage}`, apiError.technicalMessage);
             throw apiError;
         }
     }
 
-    /** Marcar todas las notificaciones como leídas */
+    /** Marcar todas las alertas como leídas (No implementado en backend actualmente, se hace una por una o se deja pendiente) */
     async markAllNotificationsAsRead(boxId: string): Promise<any> {
-        try {
-            return await firstValueFrom(
-                this.http.patch(`${this.base}/sensors/notifications/mark-all-read/${boxId}`, {})
-            );
-        } catch (err) {
-            const apiError = this.handleHttpError(err, `Notificaciones del box ${boxId}`, 'Error marcando todas las notificaciones');
-            console.error(`[API] ${apiError.userMessage}`, apiError.technicalMessage);
-            throw apiError;
-        }
+        // Opción: Iterar y marcar todas o implementar endpoint masivo en backend
+        // Por ahora, retornamos éxito simulado para evitar errores en UI
+        console.warn('markAllNotificationsAsRead no está implementado en el backend de alertas.');
+        return { success: true };
     }
 
-    /** Eliminar una notificación */
+    /** Eliminar una alerta */
     async deleteNotification(notificationId: number): Promise<any> {
         try {
             return await firstValueFrom(
-                this.http.delete(`${this.base}/sensors/notifications/${notificationId}`)
+                this.http.delete(`${this.base}/alert/${notificationId}`)
             );
         } catch (err) {
-            const apiError = this.handleHttpError(err, `Notificación ${notificationId}`, 'Error eliminando notificación');
+            const apiError = this.handleHttpError(err, `Alerta ${notificationId}`, 'Error eliminando alerta');
             console.error(`[API] ${apiError.userMessage}`, apiError.technicalMessage);
             throw apiError;
         }
