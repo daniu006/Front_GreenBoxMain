@@ -70,3 +70,4 @@ testem.log
 Thumbs.db
 workflows/
 google-services.json
+.json
