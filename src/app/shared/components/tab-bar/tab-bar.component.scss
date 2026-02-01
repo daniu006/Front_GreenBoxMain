@@ -28,56 +28,46 @@ ion-footer {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: 0;
     background: transparent;
     border: none;
-    padding: 8px;
+    padding: 0;
+    height: 100%;
     cursor: pointer;
     color: #999;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     position: relative;
     border-radius: 12px;
 
     .tab-icon {
-      width: 24px;
-      height: 24px;
+      width: 28px;
+      height: 28px;
       object-fit: contain;
-      transition: all 0.3s ease;
-      opacity: 0.4;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      opacity: 0.5;
       filter: grayscale(100%);
     }
 
-    .tab-label {
-      font-size: 11px;
-      font-weight: 500;
-      transition: all 0.3s ease;
-    }
-
     &.active {
-      background: linear-gradient(135deg, #f1f8f5 0%, #e8f5f0 100%);
+      background: rgba(95, 184, 154, 0.08);
       color: #5fb89a;
 
       .tab-icon {
         opacity: 1;
-        transform: translateY(-2px) scale(1.1);
+        transform: scale(1.15);
         filter: invert(66%) sepia(25%) saturate(500%) hue-rotate(115deg) brightness(100%) contrast(90%);
-      }
-
-      .tab-label {
-        font-weight: 700;
-        color: #5fb89a;
       }
 
       &::after {
         content: '';
         position: absolute;
-        bottom: 0;
+        bottom: 4px;
         left: 50%;
         transform: translateX(-50%);
-        width: 32px;
-        height: 3px;
+        width: 4px;
+        height: 4px;
         background: #5fb89a;
-        border-radius: 3px 3px 0 0;
+        border-radius: 50%;
       }
     }
 
@@ -97,17 +87,21 @@ ion-footer {
 
     .notification-badge {
       position: absolute;
-      top: 4px;
-      right: calc(50% - 20px);
-      background: linear-gradient(135deg, #f44336 0%, #ef5350 100%);
+      top: 12px;
+      right: calc(50% - 18px);
+      background: #ff4d4f;
       color: white;
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 10px;
-      min-width: 18px;
-      text-align: center;
-      box-shadow: 0 2px 4px rgba(244, 67, 54, 0.3);
+      padding: 0 4px;
+      border-radius: 8px;
+      min-width: 16px;
+      height: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid white;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
   }
 }

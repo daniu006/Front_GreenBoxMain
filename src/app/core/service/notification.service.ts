@@ -25,72 +25,60 @@ export class NotificationService {
             return;
         }
 
-        // Solicitar permisos
         const permission = await PushNotifications.requestPermissions();
 
         if (permission.receive === 'granted') {
-            // Registrar dispositivo en FCM
             await PushNotifications.register();
         } else {
-            console.error('Push notification permission denied');
+            alert('PERMISO DENEGADO para notificaciones.');
             return;
         }
 
-        // Escuchar cuando el token se genera
         PushNotifications.addListener('registration', (token: Token) => {
-            console.log('Push registration success, token: ' + token.value);
+            alert(`TOKEN GENERADO:\n${token.value.substring(0, 15)}...`);
+            console.log('Push registration success:', token.value);
             this.fcmToken = token.value;
-            localStorage.setItem('fcm_token', token.value); // Persistir token
+            localStorage.setItem('fcm_token', token.value);
             this.updateTokenInBackend(token.value);
         });
 
-        // Escuchar errores de registro
         PushNotifications.addListener('registrationError', (error: any) => {
-            console.error('Error on registration: ' + JSON.stringify(error));
+            alert('ERROR GENERANDO TOKEN:\n' + JSON.stringify(error));
         });
 
-        // Escuchar cuando llega una notificación (app en primer plano)
         PushNotifications.addListener('pushNotificationReceived', (notification: PushNotificationSchema) => {
-            console.log('Push received: ' + JSON.stringify(notification));
+            console.log('Push received:', notification);
         });
 
-        // Escuchar cuando el usuario toca la notificación
         PushNotifications.addListener('pushNotificationActionPerformed', (notification: ActionPerformed) => {
-            console.log('Push action performed: ' + JSON.stringify(notification));
+            console.log('Push action:', notification);
         });
     }
 
-    /**
-     * Envía el token al backend para guardarlo en la Box actual
-     */
     private async updateTokenInBackend(token: string) {
         const boxId = this.authService.getBoxId();
         if (boxId) {
             try {
-                await this.apiService.updateBoxToken(boxId, token);
-                console.log('FCM Token updated in backend successfully for Box:', boxId);
-            } catch (error) {
-                console.error('Error updating FCM Token in backend:', error);
+                alert(`ENVIANDO TOKEN AL SERVIDOR...\nBox ID: ${boxId}`);
+                const res = await this.apiService.updateBoxToken(boxId, token);
+                alert(`✅ RESPUESTA SERVIDOR:\n${JSON.stringify(res)}`);
+            } catch (error: any) {
+                alert(`❌ ERROR EN SERVIDOR:\n${JSON.stringify(error)}`);
             }
         } else {
-            console.warn('Cannot update FCM Token: No boxId found in session yet.');
+            alert('⚠️ ERROR: No hay Box ID en sesión. Haz login de nuevo.');
         }
     }
 
-    /**
-     * Intenta enviar el token guardado al backend (útil después del login)
-     */
     async pushToken() {
-        // Intentar recuperar de memoria o localStorage
         const token = this.fcmToken || localStorage.getItem('fcm_token');
 
         if (token) {
-            console.log('Pushing existing token to backend...');
-            this.fcmToken = token; // Sincronizar memoria
+            alert('Enviando token existente...');
+            this.fcmToken = token;
             await this.updateTokenInBackend(token);
         } else {
-            console.log('No token found. Requesting permission/registration again...');
-            // Si no hay token, intentar inicializar de nuevo para obtenerlo
+            alert('No hay token. Iniciando registro...');
             await this.initPush();
         }
     }

@@ -13,8 +13,7 @@ import {
   helpCircleOutline,
   swapHorizontal,
   settingsOutline,
-  water,
-  bulb, waterOutline, timeOutline, logOutOutline
+  bulb, water, waterOutline, timeOutline, logOutOutline, power, powerOutline
 } from 'ionicons/icons';
 import { SensorData, ActuatorStatus, Plant } from '../../../../core/models/api.models';
 import { ApiService } from '../../../../core/service/api.service';
@@ -64,7 +63,7 @@ export class HomeComponent implements OnInit {
     private apiService: ApiService,
     private authService: AuthService
   ) {
-    addIcons({ helpCircleOutline, settingsOutline, bulb, water, waterOutline, timeOutline, swapHorizontal, logOutOutline });
+    addIcons({ helpCircleOutline, settingsOutline, bulb, water, waterOutline, timeOutline, swapHorizontal, logOutOutline, power, powerOutline });
   }
 
   ngOnInit() {
@@ -237,6 +236,40 @@ export class HomeComponent implements OnInit {
 
   onImageError(event: any) {
     event.target.src = 'assets/plants/default-plant.jpg';
+  }
+
+  async toggleLed() {
+    if (!this.actuatorStatus) return;
+    const boxId = this.authService.getBoxId();
+    if (!boxId) return;
+
+    // Invertimos el estado manual actual
+    const newState = !this.actuatorStatus.manualLed;
+
+    try {
+      await this.apiService.controlActuators(boxId, newState, undefined);
+      this.actuatorStatus.manualLed = newState;
+      this.actuatorStatus.led = newState; // Feedback inmediato
+    } catch (error) {
+      console.error('Error toggling LED:', error);
+    }
+  }
+
+  async togglePump() {
+    if (!this.actuatorStatus) return;
+    const boxId = this.authService.getBoxId();
+    if (!boxId) return;
+
+    // Invertimos el estado manual actual
+    const newState = !this.actuatorStatus.manualPump;
+
+    try {
+      await this.apiService.controlActuators(boxId, undefined, newState);
+      this.actuatorStatus.manualPump = newState;
+      this.actuatorStatus.pump = newState; // Feedback inmediato
+    } catch (error) {
+      console.error('Error toggling Pump:', error);
+    }
   }
 
   onTabChange(tab: string) {

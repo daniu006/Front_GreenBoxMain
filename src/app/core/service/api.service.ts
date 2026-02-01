@@ -154,11 +154,11 @@ export class ApiService {
         }
     }
 
-    /** Control manual de actuadores (opcional) */
-    async controlActuators(boxId: string, led?: boolean, pump?: boolean) {
+    /** Control manual de actuadores */
+    async controlActuators(boxId: string, manualLed?: boolean, manualPump?: boolean) {
         try {
             return await firstValueFrom(
-                this.http.post(`${this.base}/box/${boxId}/actuators`, { led, pump })
+                this.http.patch(`${this.base}/box/${boxId}`, { manualLed, manualPump })
             );
         } catch (err) {
             const apiError = this.handleHttpError(err, `Control de actuadores`, 'Error controlando actuadores');
@@ -225,7 +225,7 @@ export class ApiService {
     async updateBoxToken(boxId: string, fcmToken: string): Promise<any> {
         try {
             return await firstValueFrom(
-                this.http.patch(`${this.base}/box/${boxId}`, { fcmToken })
+                this.http.post(`${this.base}/box/${boxId}/token`, { token: fcmToken, isLoggedIn: true })
             );
         } catch (err) {
             const apiError = this.handleHttpError(err, `Box ${boxId}`, 'Error actualizando token de notificaciones');

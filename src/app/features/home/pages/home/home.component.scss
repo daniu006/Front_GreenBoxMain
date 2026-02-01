@@ -385,6 +385,7 @@
           padding: 4px 12px;
           border-radius: 12px;
           background: #f5f5f5;
+          margin-bottom: 12px;
           transition: all 0.3s ease;
 
           &.on {
@@ -392,6 +393,44 @@
             background: linear-gradient(90deg, #5fb89a, #4caf50);
             box-shadow: 0 2px 8px rgba(95, 184, 154, 0.3);
           }
+        }
+      }
+
+      .manual-control-btn {
+        width: 100%;
+        background: #f0f0f0;
+        border: none;
+        border-radius: 10px;
+        padding: 8px;
+        font-size: 11px;
+        font-weight: 700;
+        color: #777;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-top: 4px;
+
+        ion-icon {
+          font-size: 16px;
+        }
+
+        &.on {
+          background: #e1f5fe;
+          color: #0288d1;
+          border: 1px solid #b3e5fc;
+
+          &.led {
+            background: #fff9c4;
+            color: #f57f17;
+            border-color: #fff176;
+          }
+        }
+
+        &:active {
+          transform: scale(0.95);
         }
       }
     }

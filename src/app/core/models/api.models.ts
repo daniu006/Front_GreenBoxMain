@@ -21,6 +21,8 @@ export interface ActuatorStatus {
     boxName: string;
     led: boolean;
     pump: boolean;
+    manualLed: boolean;
+    manualPump: boolean;
     wateringCount: number;
     lastWateringDate: string | null;
 }
@@ -34,6 +36,8 @@ export interface Box {
     lastWateringDate?: string;
     ledStatus: boolean;
     pumpStatus: boolean;
+    manualLed: boolean;
+    manualPump: boolean;
     createdAt: string;
 }
 

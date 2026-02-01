@@ -82,8 +82,9 @@
         [status]="getSensorStatus('water')" [statusText]="getSensorStatusText('water')">
       </app-sensor-card>
 
-      <app-sensor-card title="Humedad Suelo" [value]="sensorData.soilMoisture" unit="%" iconPath="assets/icon/humedad.png"
-        [status]="getSensorStatus('soilMoisture')" [statusText]="getSensorStatusText('soilMoisture')">
+      <app-sensor-card title="Humedad Suelo" [value]="sensorData.soilMoisture" unit="%"
+        iconPath="assets/icon/humedad.png" [status]="getSensorStatus('soilMoisture')"
+        [statusText]="getSensorStatusText('soilMoisture')">
       </app-sensor-card>
     </div>
 
@@ -107,6 +108,11 @@
               {{ actuatorStatus.led ? 'Encendido' : 'Apagado' }}
             </span>
           </div>
+          <!-- Botón de Control Manual -->
+          <button class="manual-control-btn" [class.on]="actuatorStatus.manualLed" (click)="toggleLed()">
+            <ion-icon [name]="actuatorStatus.manualLed ? 'power' : 'power-outline'"></ion-icon>
+            {{ actuatorStatus.manualLed ? 'Apagar LED' : 'Encender LED' }}
+          </button>
         </div>
 
         <!-- Pump Status -->
@@ -121,6 +127,11 @@
               {{ actuatorStatus.pump ? 'Activa' : 'Inactiva' }}
             </span>
           </div>
+          <!-- Botón de Control Manual -->
+          <button class="manual-control-btn" [class.on]="actuatorStatus.manualPump" (click)="togglePump()">
+            <ion-icon [name]="actuatorStatus.manualPump ? 'power' : 'power-outline'"></ion-icon>
+            {{ actuatorStatus.manualPump ? 'Detener Bomba' : 'Activar Bomba' }}
+          </button>
         </div>
       </div>
 
