@@ -21,6 +21,7 @@ import {
   shieldCheckmarkOutline
 } from 'ionicons/icons';
 import { AuthService } from '../../../../core/service/auth.service';
+import { NotificationService } from '../../../../core/service/notification.service';
 
 @Component({
   selector: 'app-login',
@@ -47,7 +48,8 @@ export class LoginComponent implements OnInit {
 
   constructor(
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private notificationService: NotificationService
   ) {
     addIcons({ lockClosedOutline, keyOutline, arrowForwardOutline, shieldCheckmarkOutline, alertCircle, checkmarkCircle });
   }
@@ -73,6 +75,9 @@ export class LoginComponent implements OnInit {
 
       if (result.success) {
         this.showMessage('¡Acceso exitoso!', 'success');
+
+        // Sincronizar token de notificaciones una vez que tenemos boxId
+        this.notificationService.pushToken();
 
         setTimeout(() => {
           this.router.navigate(['/home']);

@@ -22,9 +22,14 @@ import {
   settingsOutline,
   notificationsOffOutline,
   alertCircle,
+  alertCircleOutline,
   timeOutline,
   informationCircle,
-  warning
+  warning,
+  thermometerOutline,
+  waterOutline,
+  sunnyOutline,
+  cloudyOutline
 } from 'ionicons/icons';
 import { Notification } from '../../../../core/models/notification.model';
 import { Alert } from '../../../../core/models/api.models';
@@ -64,7 +69,24 @@ export class NotificationListComponent implements OnInit {
     private apiService: ApiService,
     private authService: AuthService
   ) {
-    addIcons({ arrowBack, notificationsOutline, checkmarkDone, leafOutline, close, settingsOutline, notificationsOffOutline, alertCircle, timeOutline, informationCircle, warning });
+    addIcons({
+      arrowBack,
+      notificationsOutline,
+      checkmarkDone,
+      leafOutline,
+      close,
+      settingsOutline,
+      notificationsOffOutline,
+      alertCircle,
+      alertCircleOutline,
+      timeOutline,
+      informationCircle,
+      warning,
+      thermometerOutline,
+      waterOutline,
+      sunnyOutline,
+      cloudyOutline
+    });
   }
 
   ngOnInit() {
@@ -121,62 +143,41 @@ export class NotificationListComponent implements OnInit {
     } else if (diffDays === 1) {
       timeText = 'Ayer';
     } else {
-      timeText = `Hace ${diffDays} días`;
+      timeText = timestamp.toLocaleDateString();
     }
 
     return {
       id: alert.id.toString(),
-      type: this.mapAlertType(alert.type) as 'alert' | 'reminder' | 'system' | 'info',
+      type: alert.type as any,
       priority: alert.priority as 'high' | 'medium' | 'low',
       title: this.getAlertTitle(alert.type),
       message: alert.message,
       time: timeText,
       date: timestamp.toLocaleDateString(),
       read: alert.resolved,
-      timestamp: timestamp
+      timestamp: timestamp,
+      plantName: 'GreenBox'
     };
-  }
-
-  private mapAlertType(type: string): string {
-    const typeMap: { [key: string]: string } = {
-      'temperature': 'alert',
-      'humidity': 'alert',
-      'light': 'alert',
-      'soilMoisture': 'alert',
-      'water': 'alert',
-      'system': 'system',
-      'info': 'info'
-    };
-    return typeMap[type] || 'info';
   }
 
   private getAlertTitle(type: string): string {
     const titleMap: { [key: string]: string } = {
-      'temperature': 'Alerta de Temperatura',
-      'humidity': 'Alerta de Humedad',
-      'light': 'Alerta de Luz',
-      'soilMoisture': 'Alerta de Suelo Tiesa',
-      'water': 'Alerta de Agua',
-      'system': 'Notificación del Sistema',
+      'temperature': 'Temperatura Anormal',
+      'humidity': 'Humedad Fuera de Rango',
+      'light': 'Problema de Iluminación',
+      'soilMoisture': 'Humedad de Suelo',
+      'water': 'Nivel de Agua',
+      'system': 'Sistema',
       'info': 'Información'
     };
-    return titleMap[type] || 'Notificación';
+    return titleMap[type] || 'Alerta';
   }
 
   private filterNotifications() {
-    if (this.selectedFilter === 'all') {
-      this.filteredNotifications = [...this.allNotifications];
+    if (this.selectedFilter === 'active') {
+      this.filteredNotifications = this.allNotifications.filter(n => !n.read);
     } else {
-      const typeMap: { [key: string]: string } = {
-        'alerts': 'alert',
-        'reminders': 'reminder',
-        'system': 'system'
-      };
-
-      const filterType = typeMap[this.selectedFilter];
-      this.filteredNotifications = this.allNotifications.filter(
-        n => n.type === filterType
-      );
+      this.filteredNotifications = [...this.allNotifications];
     }
   }
 
@@ -203,9 +204,9 @@ export class NotificationListComponent implements OnInit {
   }
 
   openNotification(notification: Notification) {
-    // Mark as read
-    notification.read = true;
-    this.calculateUnreadCount();
+    // Mark as read locally, but wait for user action or backend sync if needed
+    // notification.read = true; 
+    // this.calculateUnreadCount();
 
     // Navigate based on notification type
     if (notification.plantId) {
@@ -215,11 +216,8 @@ export class NotificationListComponent implements OnInit {
 
   async dismissNotification(notification: Notification, event: Event) {
     event.stopPropagation();
-
     try {
       await this.apiService.deleteNotification(parseInt(notification.id));
-
-      // Remove notification from arrays
       this.allNotifications = this.allNotifications.filter(n => n.id !== notification.id);
       this.filterNotifications();
       this.separateNotificationsByDate();
@@ -244,16 +242,22 @@ export class NotificationListComponent implements OnInit {
 
   getIconName(type: string): string {
     switch (type) {
-      case 'alert':
-        return 'alert-circle';
-      case 'reminder':
-        return 'time-outline';
+      case 'temperature':
+        return 'thermometer-outline';
+      case 'water':
+        return 'water-outline';
+      case 'soilMoisture':
+        return 'leaf-outline';
+      case 'humidity':
+        return 'cloudy-outline';
+      case 'light':
+        return 'sunny-outline';
       case 'system':
-        return 'information-circle';
+        return 'settings-outline';
       case 'info':
-        return 'checkmark-circle';
+        return 'information-circle';
       default:
-        return 'notifications-outline';
+        return 'alert-circle-outline';
     }
   }
 
@@ -284,7 +288,6 @@ export class NotificationListComponent implements OnInit {
   }
 
   openSettings() {
-    // TODO: Navigate to notification settings
     alert('Configuración de notificaciones en desarrollo');
   }
 }

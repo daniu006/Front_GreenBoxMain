@@ -16,8 +16,7 @@ import {
   water,
   bulb, waterOutline, timeOutline, logOutOutline
 } from 'ionicons/icons';
-import { SensorData, ActuatorStatus } from '../../../../core/models/api.models';
-import { Plant } from '../../../../core/models/plant.model';
+import { SensorData, ActuatorStatus, Plant } from '../../../../core/models/api.models';
 import { ApiService } from '../../../../core/service/api.service';
 import { AuthService } from '../../../../core/service/auth.service';
 
@@ -99,18 +98,28 @@ export class HomeComponent implements OnInit {
   }
 
   private async loadActivePlant() {
-    // Simulate API call - Replace with actual service
-    const plantData = localStorage.getItem('activePlant');
-    if (plantData) {
-      this.activePlant = JSON.parse(plantData);
-    } else {
-      // Mock data for demo
-      this.activePlant = {
-        id: '1',
-        name: 'Lechuga Romana',
-        type: 'Hoja Verde',
-        imageUrl: 'assets/plants/lechuga.jpg'
-      };
+    const boxId = this.authService.getBoxId();
+    if (!boxId) return;
+
+    try {
+      const response = await this.apiService.getBoxInfo(boxId);
+      if (response && response.box && response.box.plantId) {
+        // Obtenemos la información de la planta desde el catálogo
+        const plantsRes = await this.apiService.getPlants();
+        const plant = plantsRes.data.find((p: any) => p.id === response.box.plantId);
+
+        if (plant) {
+          this.activePlant = {
+            ...plant,
+            imageUrl: `assets/plants/${plant.name.toLowerCase().replace(/ /g, '-')}.jpg`
+          };
+        }
+      } else {
+        this.activePlant = null;
+      }
+    } catch (error) {
+      console.error('Error loading active plant:', error);
+      this.activePlant = null;
     }
   }
 

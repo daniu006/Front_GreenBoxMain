@@ -11,31 +11,22 @@
       <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
     </ion-button>
     <div class="header-content">
-      <h1 class="header-title">Notificaciones</h1>
+      <h1 class="header-title">Alertas</h1>
       <p class="header-subtitle">
-        <ion-icon name="notifications-outline"></ion-icon>
-        {{ unreadCount }} sin leer
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        Historial de anomalías
       </p>
     </div>
-    <ion-button fill="clear" class="action-button" (click)="markAllAsRead()" *ngIf="unreadCount > 0">
-      <ion-icon name="checkmark-done" slot="icon-only"></ion-icon>
-    </ion-button>
   </div>
 
   <!-- Filtros -->
   <div class="filter-section">
     <ion-segment [value]="selectedFilter" mode="ios" (ionChange)="onFilterChange($event)">
       <ion-segment-button value="all">
-        <ion-label>Todas</ion-label>
+        <ion-label>Historial</ion-label>
       </ion-segment-button>
-      <ion-segment-button value="alerts">
-        <ion-label>Alertas</ion-label>
-      </ion-segment-button>
-      <ion-segment-button value="reminders">
-        <ion-label>Recordatorios</ion-label>
-      </ion-segment-button>
-      <ion-segment-button value="system">
-        <ion-label>Sistema</ion-label>
+      <ion-segment-button value="active">
+        <ion-label>Activas</ion-label>
       </ion-segment-button>
     </ion-segment>
   </div>

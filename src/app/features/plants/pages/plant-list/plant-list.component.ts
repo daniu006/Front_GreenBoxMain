@@ -16,7 +16,9 @@ import {
   addCircleOutline,
   leafOutline
 } from 'ionicons/icons';
-import { Plant } from '../../../../core/models/plant.model';
+import { Plant } from '../../../../core/models/api.models';
+import { ApiService } from '../../../../core/service/api.service';
+import { AuthService } from '../../../../core/service/auth.service';
 
 @Component({
   selector: 'app-plant-list',
@@ -39,7 +41,11 @@ export class PlantListComponent implements OnInit {
   allPlants: Plant[] = [];
   filteredPlants: Plant[] = [];
 
-  constructor(private router: Router) {
+  constructor(
+    private router: Router,
+    private apiService: ApiService,
+    private authService: AuthService
+  ) {
     addIcons({
       'arrow-back': arrowBack,
       'checkmark-circle': checkmarkCircle,
@@ -50,80 +56,41 @@ export class PlantListComponent implements OnInit {
 
   ngOnInit() {
     this.loadPlants();
-    this.loadActivePlant();
   }
 
-  loadPlants() {
-    // Mock data - Replace with actual API service
-    this.allPlants = [
-      {
-        id: '1',
-        name: 'Lechuga Romana',
-        type: 'Hoja Verde',
-        imageUrl: 'assets/plants/lechuga.jpg',
-        difficulty: 'Fácil',
-        benefits: ['Rica en fibra', 'Vitaminas A y K'],
+  async loadPlants() {
+    try {
+      const response = await this.apiService.getPlants(); // Asumiendo que existe o lo crearé
+      this.allPlants = response.data.map((p: any) => ({
+        ...p,
+        imageUrl: `assets/plants/${p.name.toLowerCase().replace(/ /g, '-')}.jpg`,
+        difficulty: p.maxTemperature > 30 ? 'Medio' : 'Fácil',
+        benefits: ['Saludable', 'Orgánico'],
         isActive: false
-      },
-      {
-        id: '2',
-        name: 'Tomate Cherry',
-        type: 'Fruto',
-        imageUrl: 'assets/plants/tomate.jpg',
-        difficulty: 'Medio',
-        benefits: ['Antioxidantes', 'Vitamina C'],
-        isActive: false
-      },
-      {
-        id: '3',
-        name: 'Albahaca',
-        type: 'Hierba Aromática',
-        imageUrl: 'assets/plants/albahaca.jpg',
-        difficulty: 'Fácil',
-        benefits: ['Aromática', 'Propiedades medicinales'],
-        isActive: false
-      },
-      {
-        id: '4',
-        name: 'Espinaca',
-        type: 'Hoja Verde',
-        imageUrl: 'assets/plants/espinaca.jpg',
-        difficulty: 'Fácil',
-        benefits: ['Alto en hierro', 'Vitaminas'],
-        isActive: false
-      },
-      {
-        id: '5',
-        name: 'Fresa',
-        type: 'Fruto',
-        imageUrl: 'assets/plants/fresa.jpg',
-        difficulty: 'Medio',
-        benefits: ['Dulce', 'Vitamina C'],
-        isActive: false
-      },
-      {
-        id: '6',
-        name: 'Cilantro',
-        type: 'Hierba Aromática',
-        imageUrl: 'assets/plants/cilantro.jpg',
-        difficulty: 'Fácil',
-        benefits: ['Aromático', 'Digestivo'],
-        isActive: false
+      }));
+
+      await this.loadActivePlant();
+    } catch (error) {
+      console.error('Error loading plants:', error);
+    }
+  }
+
+  async loadActivePlant() {
+    const boxId = this.authService.getBoxId();
+    if (!boxId) return;
+
+    try {
+      const response = await this.apiService.getBoxInfo(boxId);
+      if (response && response.box && response.box.plantId) {
+        const activeId = response.box.plantId;
+        this.allPlants.forEach(plant => {
+          plant.isActive = plant.id === activeId;
+          if (plant.isActive) this.activePlant = plant;
+        });
       }
-    ];
-
-    this.filterPlants();
-  }
-
-  loadActivePlant() {
-    const plantData = localStorage.getItem('activePlant');
-    if (plantData) {
-      this.activePlant = JSON.parse(plantData);
-      // Mark active plant in the list
-      this.allPlants.forEach(plant => {
-        plant.isActive = plant.id === this.activePlant?.id;
-      });
       this.filterPlants();
+    } catch (error) {
+      console.error('Error loading active plant:', error);
     }
   }
 
@@ -143,38 +110,27 @@ export class PlantListComponent implements OnInit {
   }
 
   async onPlantSelect(plant: Plant) {
-    // Get boxId from localStorage
-    const boxId = localStorage.getItem('boxId');
+    const boxId = this.authService.getBoxId();
 
     if (!boxId) {
       console.error('No box ID found');
-      alert('Error: No se encontró el ID de la caja');
       return;
     }
 
     try {
-      // TODO: Make API call to update box with selected plant
-      // await this.apiService.updateBox(boxId, { plantId: plant.id });
+      // Llamada real al backend para asignar la planta a la caja
+      await this.apiService.updateBoxPlant(boxId, plant.id);
 
-      // For now, just update localStorage
-      localStorage.setItem('activePlant', JSON.stringify(plant));
-
-      // Update UI
+      // Actualizar UI
       this.allPlants.forEach(p => p.isActive = p.id === plant.id);
       this.activePlant = plant;
       this.filterPlants();
 
-      // Show success message
-      alert(`${plant.name} seleccionada correctamente`);
-
-      // Navigate back to home
-      setTimeout(() => {
-        this.router.navigate(['/home']);
-      }, 1000);
+      // Navegar de vuelta
+      this.router.navigate(['/home']);
 
     } catch (error) {
       console.error('Error selecting plant:', error);
-      alert('Error al seleccionar la planta');
     }
   }
 
