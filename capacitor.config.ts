@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'io.ionic.starter',
+  appId: 'com.getcapacitor.myapp',
   appName: 'front_GreenBox0.2',
   webDir: 'www',
   server: {
