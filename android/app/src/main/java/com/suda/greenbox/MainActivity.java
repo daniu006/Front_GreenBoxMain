@@ -1,4 +1,4 @@
-package com.getcapacitor.myapp;
+package com.suda.greenbox;
 
 import com.getcapacitor.BridgeActivity;
 

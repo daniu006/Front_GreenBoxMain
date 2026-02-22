@@ -15,6 +15,7 @@ import { HistoryDataPoint } from '../../../../core/models/sensor.model';
 import { HeaderComponent } from '../../../../shared/components/header/header.component';
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner.component';
 import { TabBarComponent } from '../../../../shared/components/tab-bar/tab-bar.component';
+import { ApiService } from '../../../../core/service/api.service';
 
 @Component({
   selector: 'app-history-overview',
@@ -42,8 +43,12 @@ export class HistoryOverviewComponent implements OnInit {
   humidityData: HistoryDataPoint[] = [];
   lightData: HistoryDataPoint[] = [];
   waterData: HistoryDataPoint[] = [];
+  plantInfo: any = null;
 
-  constructor(private router: Router) {
+  constructor(
+    private router: Router,
+    private apiService: ApiService
+  ) {
     addIcons({
       'arrow-back': arrowBack
     });
@@ -67,18 +72,35 @@ export class HistoryOverviewComponent implements OnInit {
   }
 
   private async fetchHistoryData() {
+    const boxId = localStorage.getItem('selectedBoxId') || '1';
+
+    try {
+      // 1. Obtener info de la planta para tener los rangos
+      const boxResponse = await this.apiService.getBoxInfo(boxId);
+      this.plantInfo = boxResponse.box?.plant || null;
+      console.log('Plant Info for Charts:', this.plantInfo);
+    } catch (e) {
+      console.warn('Could not fetch plant info, using defaults');
+    }
+
     return new Promise<void>((resolve) => {
       setTimeout(() => {
-        // Generate mock data based on selected range
         const dataPoints = this.getDataPointsCount();
 
-        this.temperatureData = this.generateMockData(18, 28, dataPoints);
-        this.humidityData = this.generateMockData(50, 80, dataPoints);
-        this.lightData = this.generateMockData(60, 90, dataPoints);
-        this.waterData = this.generateMockData(40, 100, dataPoints);
+        // Usar límites de la planta o valores por defecto razonables
+        const tMin = this.plantInfo?.minTemperature || 18;
+        const tMax = this.plantInfo?.maxTemperature || 30;
+
+        const hMin = this.plantInfo?.minHumidity || 40;
+        const hMax = this.plantInfo?.maxHumidity || 80;
+
+        this.temperatureData = this.generateMockData(tMin - 5, tMax + 5, dataPoints, tMin, tMax);
+        this.humidityData = this.generateMockData(hMin - 10, hMax + 10, dataPoints, hMin, hMax);
+        this.lightData = this.generateMockData(0, 100, dataPoints, 0, 100);
+        this.waterData = this.generateMockData(0, 100, dataPoints, 20, 100);
 
         resolve();
-      }, 800);
+      }, 500);
     });
   }
 
@@ -95,17 +117,29 @@ export class HistoryOverviewComponent implements OnInit {
     }
   }
 
-  private generateMockData(min: number, max: number, count: number): HistoryDataPoint[] {
+  private generateMockData(min: number, max: number, count: number, idealMin?: number, idealMax?: number): HistoryDataPoint[] {
     const data: HistoryDataPoint[] = [];
     const range = max - min;
 
+    // Si no hay límites ideales, usamos el rango de generación
+    const scaleMin = idealMin !== undefined ? idealMin - (idealMax! - idealMin!) * 0.5 : min;
+    const scaleMax = idealMax !== undefined ? idealMax + (idealMax - idealMin!) * 0.5 : max;
+    const scaleRange = scaleMax - scaleMin;
+
     for (let i = 0; i < count; i++) {
+      // Generar valor aleatorio dentro del rango [min, max]
       const value = Math.round(min + Math.random() * range);
-      const percentage = ((value - min) / range) * 100;
+
+      // Calcular porcentaje relativo a una escala visual (para que no todas las barras se vean iguales)
+      // Usamos una escala un poco más amplia que los límites ideales para dar contexto
+      let percentage = ((value - scaleMin) / scaleRange) * 100;
+
+      // Limitar entre 15% y 100% para estética
+      percentage = Math.min(100, Math.max(15, percentage));
 
       data.push({
         value,
-        percentage: Math.max(30, percentage) // Minimum 30% for visibility
+        percentage
       });
     }
 

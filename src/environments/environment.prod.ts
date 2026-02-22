@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiUrl: 'http://192.168.18.139:3000'
+  apiUrl: 'https://greenbox02-production.up.railway.app'
 };
 

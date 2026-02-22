@@ -18,7 +18,7 @@ ion-footer {
   display: flex;
   justify-content: space-around;
   align-items: center;
-  height: 56px;
+  height: 60px;
   background: white;
   padding-bottom: env(safe-area-inset-bottom);
 
@@ -40,8 +40,8 @@ ion-footer {
     border-radius: 12px;
 
     .tab-icon {
-      width: 28px;
-      height: 28px;
+      width: 24px;
+      height: 24px;
       object-fit: contain;
       transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       opacity: 0.5;
@@ -87,8 +87,8 @@ ion-footer {
 
     .notification-badge {
       position: absolute;
-      top: 12px;
-      right: calc(50% - 18px);
+      top: 14px;
+      right: calc(50% - 16px);
       background: #ff4d4f;
       color: white;
       font-size: 9px;
