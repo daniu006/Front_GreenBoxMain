@@ -25,48 +25,54 @@ export class NotificationService {
             return;
         }
 
-        const permission = await PushNotifications.requestPermissions();
+        try {
+            const permission = await PushNotifications.requestPermissions();
 
-        if (permission.receive === 'granted') {
+            if (permission.receive !== 'granted') {
+                console.warn('[Notifications] Permiso denegado para notificaciones push');
+                return;
+            }
+
             await PushNotifications.register();
-        } else {
-            alert('PERMISO DENEGADO para notificaciones.');
-            return;
+
+            PushNotifications.addListener('registration', (token: Token) => {
+                console.log('[Notifications] Token FCM generado correctamente');
+                this.fcmToken = token.value;
+                localStorage.setItem('fcm_token', token.value);
+                this.updateTokenInBackend(token.value);
+            });
+
+            PushNotifications.addListener('registrationError', (error: any) => {
+                console.error('[Notifications] Error generando token FCM:', error);
+            });
+
+            PushNotifications.addListener('pushNotificationReceived', (notification: PushNotificationSchema) => {
+                console.log('[Notifications] Notificación recibida:', notification.title);
+            });
+
+            PushNotifications.addListener('pushNotificationActionPerformed', (notification: ActionPerformed) => {
+                console.log('[Notifications] Acción en notificación:', notification.actionId);
+            });
+
+        } catch (error) {
+            console.error('[Notifications] Error inicializando push:', error);
         }
-
-        PushNotifications.addListener('registration', (token: Token) => {
-            alert(`TOKEN GENERADO:\n${token.value.substring(0, 15)}...`);
-            console.log('Push registration success:', token.value);
-            this.fcmToken = token.value;
-            localStorage.setItem('fcm_token', token.value);
-            this.updateTokenInBackend(token.value);
-        });
-
-        PushNotifications.addListener('registrationError', (error: any) => {
-            alert('ERROR GENERANDO TOKEN:\n' + JSON.stringify(error));
-        });
-
-        PushNotifications.addListener('pushNotificationReceived', (notification: PushNotificationSchema) => {
-            console.log('Push received:', notification);
-        });
-
-        PushNotifications.addListener('pushNotificationActionPerformed', (notification: ActionPerformed) => {
-            console.log('Push action:', notification);
-        });
     }
 
     private async updateTokenInBackend(token: string) {
         const boxId = this.authService.getBoxId();
-        if (boxId) {
-            try {
-                alert(`ENVIANDO TOKEN AL SERVIDOR...\nBox ID: ${boxId}`);
-                const res = await this.apiService.updateBoxToken(boxId, token);
-                alert(`✅ RESPUESTA SERVIDOR:\n${JSON.stringify(res)}`);
-            } catch (error: any) {
-                alert(`❌ ERROR EN SERVIDOR:\n${JSON.stringify(error)}`);
-            }
-        } else {
-            alert('⚠️ ERROR: No hay Box ID en sesión. Haz login de nuevo.');
+        if (!boxId) {
+            console.warn('[Notifications] No hay boxId en sesión, no se puede registrar token');
+            return;
+        }
+
+        try {
+            await this.apiService.updateBoxToken(boxId, token);
+            console.log('[Notifications] Token registrado en el servidor correctamente');
+        } catch (error) {
+            // Error silencioso — no interrumpir la experiencia del usuario
+            // por un fallo en el registro del token
+            console.error('[Notifications] Error registrando token en servidor:', error);
         }
     }
 
@@ -74,11 +80,9 @@ export class NotificationService {
         const token = this.fcmToken || localStorage.getItem('fcm_token');
 
         if (token) {
-            alert('Enviando token existente...');
             this.fcmToken = token;
             await this.updateTokenInBackend(token);
         } else {
-            alert('No hay token. Iniciando registro...');
             await this.initPush();
         }
     }

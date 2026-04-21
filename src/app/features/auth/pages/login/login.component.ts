@@ -57,7 +57,7 @@ export class LoginComponent implements OnInit {
   ngOnInit() {
     // Check if already logged in
     if (this.authService.isAuthenticated()) {
-      this.router.navigate(['/home']);
+      this.router.navigate(['/home'], { replaceUrl: true });
     }
   }
 
@@ -80,7 +80,9 @@ export class LoginComponent implements OnInit {
         this.notificationService.pushToken();
 
         setTimeout(() => {
-          this.router.navigate(['/home']);
+          // replaceUrl: true elimina el login del historial,
+          // evitando regresar al login desde home al presionar atrás.
+          this.router.navigate(['/home'], { replaceUrl: true });
         }, 1000);
       } else {
         this.showMessage(result.message || 'Código de acceso inválido', 'error');

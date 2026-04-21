@@ -110,7 +110,7 @@ export class HomeComponent implements OnInit {
         if (plant) {
           this.activePlant = {
             ...plant,
-            imageUrl: `assets/plants/${plant.name.toLowerCase().replace(/ /g, '-')}.jpg`
+            imageUrl: this.getImageUrl(plant.name)
           };
         }
       } else {
@@ -238,37 +238,56 @@ export class HomeComponent implements OnInit {
     event.target.src = 'assets/plants/default-plant.jpg';
   }
 
+  getImageUrl(name: string): string {
+    const specialCases: { [key: string]: string } = {
+      'crassula muscosa': 'assets/plants/Crassula%20Muscosa.png',
+      'poto': 'assets/plants/poto.avif'
+    };
+    const key = name.toLowerCase();
+    return specialCases[key] || `assets/plants/${name.toLowerCase().replace(/ /g, '-')}.jpg`;
+  }
+
   async toggleLed() {
-    if (!this.actuatorStatus) return;
     const boxId = this.authService.getBoxId();
     if (!boxId) return;
 
-    // Invertimos el estado manual actual
+    // Si actuatorStatus es null (ESP32 offline), usamos false como base
+    if (!this.actuatorStatus) {
+      this.actuatorStatus = { boxId: +boxId, boxName: '', led: false, pump: false, manualLed: false, manualPump: false, wateringCount: 0, lastWateringDate: null };
+    }
+
     const newState = !this.actuatorStatus.manualLed;
+    console.log(`[Home] 💡 Toggle LED → newState: ${newState}`);
 
     try {
       await this.apiService.controlActuators(boxId, newState, undefined);
       this.actuatorStatus.manualLed = newState;
       this.actuatorStatus.led = newState; // Feedback inmediato
+      console.log(`[Home] ✅ LED actualizado en backend: manualLed=${newState}`);
     } catch (error) {
-      console.error('Error toggling LED:', error);
+      console.error('[Home] ❌ Error toggling LED:', error);
     }
   }
 
   async togglePump() {
-    if (!this.actuatorStatus) return;
     const boxId = this.authService.getBoxId();
     if (!boxId) return;
 
-    // Invertimos el estado manual actual
+    // Si actuatorStatus es null (ESP32 offline), usamos false como base
+    if (!this.actuatorStatus) {
+      this.actuatorStatus = { boxId: +boxId, boxName: '', led: false, pump: false, manualLed: false, manualPump: false, wateringCount: 0, lastWateringDate: null };
+    }
+
     const newState = !this.actuatorStatus.manualPump;
+    console.log(`[Home] 💧 Toggle Pump → newState: ${newState}`);
 
     try {
       await this.apiService.controlActuators(boxId, undefined, newState);
       this.actuatorStatus.manualPump = newState;
       this.actuatorStatus.pump = newState; // Feedback inmediato
+      console.log(`[Home] ✅ Bomba actualizada en backend: manualPump=${newState}`);
     } catch (error) {
-      console.error('Error toggling Pump:', error);
+      console.error('[Home] ❌ Error toggling Pump:', error);
     }
   }
 

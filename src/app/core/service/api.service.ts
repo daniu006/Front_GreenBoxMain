@@ -156,13 +156,21 @@ export class ApiService {
 
     /** Control manual de actuadores */
     async controlActuators(boxId: string, manualLed?: boolean, manualPump?: boolean) {
+        const payload: any = {};
+        if (manualLed !== undefined) payload.manualLed = manualLed;
+        if (manualPump !== undefined) payload.manualPump = manualPump;
+
+        console.log(`[API] 🔧 PATCH /box/${boxId} →`, payload);
+
         try {
-            return await firstValueFrom(
-                this.http.patch(`${this.base}/box/${boxId}`, { manualLed, manualPump })
+            const res = await firstValueFrom(
+                this.http.patch(`${this.base}/box/${boxId}`, payload)
             );
+            console.log(`[API] ✅ Respuesta controlActuators:`, res);
+            return res;
         } catch (err) {
             const apiError = this.handleHttpError(err, `Control de actuadores`, 'Error controlando actuadores');
-            console.error(`[API] ${apiError.userMessage}`, apiError.technicalMessage);
+            console.error(`[API] ❌ Error controlActuators:`, apiError.userMessage, apiError.technicalMessage);
             throw apiError;
         }
     }
@@ -203,6 +211,23 @@ export class ApiService {
 
             // Siempre retornar inválido en caso de error
             return { valid: false };
+        }
+    }
+
+    /* ========== GUIDE OPERATIONS ========== */
+
+    /** Obtener los pasos de guía para una planta específica */
+    async getGuidesByPlant(plantId: number): Promise<any[]> {
+        try {
+            const res: any = await firstValueFrom(
+                this.http.get(`${this.base}/guide/plant/${plantId}`)
+            );
+            // El endpoint retorna { message, data: GuideStep[], total }
+            return Array.isArray(res?.data) ? res.data : [];
+        } catch (err) {
+            const apiError = this.handleHttpError(err, `Guía de planta ${plantId}`, 'Error obteniendo pasos de la guía');
+            console.error(`[API] ${apiError.userMessage}`, apiError.technicalMessage);
+            return [];
         }
     }
 
@@ -306,12 +331,17 @@ export class ApiService {
         }
     }
 
-    /** Marcar todas las alertas como leídas (No implementado en backend actualmente, se hace una por una o se deja pendiente) */
+    /** Marcar todas las alertas como leídas */
     async markAllNotificationsAsRead(boxId: string): Promise<any> {
-        // Opción: Iterar y marcar todas o implementar endpoint masivo en backend
-        // Por ahora, retornamos éxito simulado para evitar errores en UI
-        console.warn('markAllNotificationsAsRead no está implementado en el backend de alertas.');
-        return { success: true };
+        try {
+            return await firstValueFrom(
+                this.http.patch(`${this.base}/alert/box/${boxId}/resolve-all`, {})
+            );
+        } catch (err) {
+            const apiError = this.handleHttpError(err, `Box ${boxId}`, 'Error al marcar todas las alertas como leídas');
+            console.error(`[API] ${apiError.userMessage}`, apiError.technicalMessage);
+            throw apiError;
+        }
     }
 
     /** Eliminar una alerta */

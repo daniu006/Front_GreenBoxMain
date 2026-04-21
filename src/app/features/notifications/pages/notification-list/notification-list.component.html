@@ -17,19 +17,12 @@
         Historial de anomalías
       </p>
     </div>
+    <ion-button fill="clear" class="action-button" (click)="markAllAsRead()" *ngIf="unreadCount > 0"
+      title="Marcar todo como leído">
+      <ion-icon name="checkmark-done" slot="icon-only"></ion-icon>
+    </ion-button>
   </div>
 
-  <!-- Filtros -->
-  <div class="filter-section">
-    <ion-segment [value]="selectedFilter" mode="ios" (ionChange)="onFilterChange($event)">
-      <ion-segment-button value="all">
-        <ion-label>Historial</ion-label>
-      </ion-segment-button>
-      <ion-segment-button value="active">
-        <ion-label>Activas</ion-label>
-      </ion-segment-button>
-    </ion-segment>
-  </div>
 
   <!-- Loading State -->
   <div *ngIf="isLoading" class="loading-container">
@@ -68,9 +61,15 @@
           </div>
         </div>
 
-        <ion-button fill="clear" class="notification-action" (click)="dismissNotification(notification, $event)">
-          <ion-icon name="close" slot="icon-only"></ion-icon>
-        </ion-button>
+        <div class="notification-actions">
+          <ion-button fill="clear" class="notification-action mark-read" *ngIf="!notification.read"
+            (click)="markAsRead(notification, $event)">
+            <ion-icon name="checkmark-circle-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+          <ion-button fill="clear" class="notification-action" (click)="dismissNotification(notification, $event)">
+            <ion-icon name="close" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
       </div>
     </div>
 
@@ -102,9 +101,15 @@
           </div>
         </div>
 
-        <ion-button fill="clear" class="notification-action" (click)="dismissNotification(notification, $event)">
-          <ion-icon name="close" slot="icon-only"></ion-icon>
-        </ion-button>
+        <div class="notification-actions">
+          <ion-button fill="clear" class="notification-action mark-read" *ngIf="!notification.read"
+            (click)="markAsRead(notification, $event)">
+            <ion-icon name="checkmark-circle-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+          <ion-button fill="clear" class="notification-action" (click)="dismissNotification(notification, $event)">
+            <ion-icon name="close" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
       </div>
     </div>
 

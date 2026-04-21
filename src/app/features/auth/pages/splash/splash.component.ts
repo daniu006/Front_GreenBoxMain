@@ -21,6 +21,8 @@ export class SplashComponent implements OnInit {
   }
 
   private navigateToLogin() {
-    this.router.navigate(['/login']);
+    // replaceUrl: true reemplaza la entrada del splash en el historial,
+    // evitando que el botón atrás regrese al splash desde el login.
+    this.router.navigate(['/login'], { replaceUrl: true });
   }
 }

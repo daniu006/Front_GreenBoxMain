@@ -1,78 +1,99 @@
+// ================================================
+// PLANTS LIST — Diseño premium coherente con la app
+// ================================================
+
 .plants-content {
   --background: #edf2f4;
-  padding-bottom: calc(80px + env(safe-area-inset-bottom));
+  padding-bottom: calc(90px + env(safe-area-inset-bottom));
   font-family: 'Helvetica Neue', sans-serif;
 }
 
+// ---- HEADER ----
 .plants-header {
-  padding: 40px 20px 30px;
-  background: #edf2f4;
-  position: relative;
+  background: #5fb89a;
+  padding: 48px 20px 32px;
   text-align: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-  border-bottom-left-radius: 24px;
-  border-bottom-right-radius: 24px;
+  position: relative;
+  border-bottom-left-radius: 28px;
+  border-bottom-right-radius: 28px;
+
 
   .back-button {
     position: absolute;
-    top: 20px;
-    left: 20px;
-    width: 45px;
-    height: 45px;
-    background: #ffffff;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    z-index: 9999;
-    --color: #2f3e34;
-
-    ion-icon {
-      font-size: 24px;
-      color: #2f3e34;
-    }
+    top: 44px;
+    left: 12px;
+    --color: #ffffff;
+    --background: rgba(255, 255, 255, 0.15);
+    --background-activated: rgba(255, 255, 255, 0.25);
+    --border-radius: 50%;
+    width: 42px;
+    height: 42px;
+    z-index: 10;
 
     &:active {
-      transform: scale(0.95);
+      transform: scale(0.92);
     }
+  }
+
+  .header-icon {
+    font-size: 44px;
+    margin-bottom: 10px;
+    display: block;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
   }
 
   .header-title {
     font-size: 28px;
     font-weight: 800;
-    color: #2f3e34;
-    margin-bottom: 4px;
+    color: #ffffff;
+    margin: 0 0 6px;
+    letter-spacing: -0.5px;
   }
 
   .header-subtitle {
-    color: #7a857b;
+    color: rgba(255, 255, 255, 0.75);
     font-size: 14px;
+    margin: 0;
   }
 }
 
+// ---- PLANTA ACTIVA ----
 .active-plant-card {
-  background: linear-gradient(145deg, #ffffff, #d8ede7);
-  margin: 16px;
+  position: relative;
+  background: #ffffff;
+  margin: 20px 16px 8px;
   border-radius: 26px;
-  padding: 20px;
-  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
+  padding: 16px;
+  box-shadow: 0 8px 30px rgba(95, 184, 154, 0.22);
+  border: 1.5px solid rgba(95, 184, 154, 0.35);
+  overflow: hidden;
+
+  .active-glow {
+    position: absolute;
+    top: -30px;
+    right: -30px;
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle, rgba(95, 184, 154, 0.2) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
 
   .active-badge {
     background: linear-gradient(90deg, #5fb89a, #4caf50);
     color: white;
-    padding: 6px 12px;
+    padding: 5px 14px;
     border-radius: 20px;
     font-size: 12px;
     font-weight: 700;
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 12px rgba(95, 184, 154, 0.35);
 
     ion-icon {
-      font-size: 16px;
+      font-size: 14px;
     }
   }
 
@@ -83,12 +104,16 @@
   }
 
   .plant-image-large {
-    width: 90px;
-    height: 90px;
+    width: 88px;
+    height: 88px;
     border-radius: 20px;
     background-size: cover;
     background-position: center;
+    background-color: #d8ede7;
     border: 3px solid #5fb89a;
+    position: relative;
+    flex-shrink: 0;
+    box-shadow: 0 6px 16px rgba(95, 184, 154, 0.3);
   }
 
   .active-plant-info {
@@ -96,32 +121,85 @@
 
     h2 {
       font-size: 20px;
-      font-weight: 700;
+      font-weight: 800;
       color: #2f3e34;
       margin: 0 0 4px;
     }
 
     .plant-type {
-      font-size: 13px;
+      font-size: 12px;
       color: #7a857b;
-      margin: 0;
+      margin: 0 0 10px;
+    }
+
+    .active-stats {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+
+      .stat-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: #edf7f3;
+        color: #2f7a5a;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 20px;
+
+        ion-icon {
+          font-size: 12px;
+        }
+      }
     }
   }
 }
 
-.filter-section {
-  padding: 0 16px 20px;
+// ---- SIN PLANTA ACTIVA ----
+.no-active-card {
+  margin: 20px 16px 8px;
+  background: #fff;
+  border-radius: 22px;
+  padding: 24px;
+  text-align: center;
+  border: 2px dashed #c5d9cc;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 
-  .section-title {
-    font-size: 18px;
+  ion-icon {
+    font-size: 40px;
+    color: #a0bba8;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  p {
+    font-size: 15px;
     font-weight: 700;
     color: #2f3e34;
-    margin-bottom: 12px;
+    margin: 0 0 4px;
+  }
+
+  span {
+    font-size: 12px;
+    color: #7a857b;
+  }
+}
+
+// ---- FILTROS ----
+.filter-section {
+  padding: 20px 16px 12px;
+
+  .section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #2f3e34;
+    margin: 0 0 12px;
   }
 
   .filter-chips {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     overflow-x: auto;
     padding-bottom: 4px;
 
@@ -129,123 +207,251 @@
       display: none;
     }
 
-    ion-chip {
-      --background: #e0f2f1;
-      --color: #2f3e34;
-      border-radius: 999px;
-      font-weight: 600;
+    .filter-chip {
       flex-shrink: 0;
+      background: #ffffff;
+      color: #2f3e34;
+      border: 1.5px solid #d5e8de;
+      border-radius: 999px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 
       &.active {
-        --background: #2f3e34;
-        --color: #ffffff;
+        background: linear-gradient(135deg, #2f3e34, #3d5c47);
+        color: #ffffff;
+        border-color: transparent;
+        box-shadow: 0 4px 14px rgba(47, 62, 52, 0.3);
+        transform: translateY(-1px);
+      }
+
+      &:active {
+        transform: scale(0.95);
       }
     }
   }
 }
 
+// ---- CONTADOR ----
+.results-count {
+  padding: 0 16px 10px;
+
+  span {
+    font-size: 12px;
+    color: #7a857b;
+    font-weight: 600;
+  }
+}
+
+// ---- GRID ----
 .plants-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  gap: 14px;
   padding: 0 16px;
   margin-bottom: 20px;
 }
 
+// ---- CARD PLANTA ----
 .plant-card {
   background: #ffffff;
   border-radius: 22px;
-  padding: 12px;
-  position: relative;
-  box-shadow: 6px 6px 16px rgba(0, 0, 0, 0.06);
-  transition: all 0.3s ease;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.07);
+  transition: all 0.25s ease;
   cursor: pointer;
+  border: 2px solid transparent;
 
   &:active {
-    transform: scale(0.98);
+    transform: scale(0.97);
   }
 
   &.active {
-    border: 2px solid #5fb89a;
-    box-shadow: 0 4px 16px rgba(95, 184, 154, 0.3);
+    border-color: #5fb89a;
+    box-shadow: 0 6px 24px rgba(95, 184, 154, 0.28);
   }
 
-  .plant-card-header {
+  // Imagen
+  .plant-image {
+    width: 100%;
+    height: 130px;
+    background-size: cover;
+    background-position: center;
+    background-color: #d8ede7;
     position: relative;
-    margin-bottom: 12px;
 
-    .plant-image {
-      width: 100%;
-      height: 140px;
-      border-radius: 16px;
-      background-size: cover;
-      background-position: center;
+    .card-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.35) 0%, transparent 60%);
+      border-radius: 0;
     }
 
     .difficulty-badge {
       position: absolute;
       top: 8px;
       right: 8px;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 700;
+      border-radius: 8px;
+    }
+
+    .active-indicator {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: #5fb89a;
+      border-radius: 50%;
+      width: 26px;
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(95, 184, 154, 0.5);
+
+      ion-icon {
+        font-size: 16px;
+        color: white;
+      }
     }
   }
 
+  // Info
   .plant-card-body {
+    padding: 12px 12px 8px;
+
     .plant-name {
-      font-size: 16px;
-      font-weight: 700;
+      font-size: 15px;
+      font-weight: 800;
       color: #2f3e34;
-      margin: 0 0 4px;
+      margin: 0 0 2px;
+      line-height: 1.2;
     }
 
     .plant-type-label {
-      font-size: 12px;
+      font-size: 11px;
       color: #7a857b;
-      margin: 0 0 12px;
+      margin: 0 0 10px;
+      font-weight: 500;
+    }
+
+    .plant-params {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+
+      .param {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        background: #f0f7f4;
+        border-radius: 8px;
+        padding: 4px 8px;
+        flex: 1;
+
+        ion-icon {
+          font-size: 11px;
+          color: #5fb89a;
+        }
+
+        span {
+          font-size: 10px;
+          font-weight: 700;
+          color: #2f3e34;
+        }
+      }
     }
 
     .benefits-section {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
-      margin-bottom:12px;
+      gap: 4px;
+      margin-bottom: 10px;
     }
-    
+
     .benefit-tag {
-    background: #e0f2f1;
-    color: #2f3e34;
-    font-size: 10px;
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-weight: 600;
-      
+      background: #e8f5e9;
+      color: #2f7a5a;
+      font-size: 9px;
+      padding: 3px 8px;
+      border-radius: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
     }
-.plant-card-footer {
-ion-button {
---border-radius: 12px;
-font-size: 13px;
-font-weight: 600;
-margin: 0;
+  }
+
+  // Footer del card
+  .plant-card-footer {
+    padding: 0 12px 12px;
+
+    .select-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 9px;
+      border-radius: 12px;
+      border: 1.5px solid #5fb89a;
+      background: transparent;
+      color: #2f7a5a;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      ion-icon {
+        font-size: 14px;
+      }
+
+      &.active-btn {
+        background: linear-gradient(135deg, #5fb89a, #4caf50);
+        border-color: transparent;
+        color: #ffffff;
+        box-shadow: 0 4px 12px rgba(95, 184, 154, 0.35);
+      }
+
+      &:active {
+        transform: scale(0.97);
+      }
+    }
+  }
 }
-}
-}
+
+// ---- CONSEJO ----
 .info-section {
-background: linear-gradient(145deg, #e0f2f1, #d0ede5);
-border-radius: 20px;
-margin: 20px 16px 30px;
-padding: 20px;
-color: #2f3e34;
-.section-title {
-font-size: 16px;
-font-weight: 700;
-margin: 0 0 8px;
-}
-.info-text {
-font-size: 14px;
-line-height: 1.6;
-margin: 0;
-color: #555;
-}
-}
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: linear-gradient(135deg, #2f3e34, #3d5c47);
+  border-radius: 22px;
+  margin: 4px 16px 28px;
+  padding: 20px;
+  box-shadow: 0 8px 24px rgba(47, 62, 52, 0.2);
+
+  .info-icon {
+    font-size: 30px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .info-text-content {
+    h4 {
+      font-size: 14px;
+      font-weight: 800;
+      color: #ffffff;
+      margin: 0 0 6px;
+    }
+
+    p {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.75);
+      line-height: 1.6;
+      margin: 0;
+    }
+  }
 }

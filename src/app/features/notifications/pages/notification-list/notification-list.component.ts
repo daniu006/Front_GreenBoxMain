@@ -4,12 +4,9 @@ import { CommonModule } from '@angular/common';
 import {
   IonRefresher,
   IonButton,
-  IonSegment,
   IonIcon,
   IonContent,
   IonRefresherContent,
-  IonSegmentButton,
-  IonLabel,
   IonSpinner
 } from "@ionic/angular/standalone";
 import { addIcons } from 'ionicons';
@@ -29,7 +26,7 @@ import {
   thermometerOutline,
   waterOutline,
   sunnyOutline,
-  cloudyOutline
+  cloudyOutline, checkmarkCircleOutline
 } from 'ionicons/icons';
 import { Notification } from '../../../../core/models/notification.model';
 import { Alert } from '../../../../core/models/api.models';
@@ -45,18 +42,14 @@ import { AuthService } from '../../../../core/service/auth.service';
     CommonModule,
     IonRefresher,
     IonButton,
-    IonSegment,
     IonIcon,
     IonContent,
     IonRefresherContent,
-    IonSegmentButton,
-    IonLabel,
     IonSpinner
   ]
 })
 export class NotificationListComponent implements OnInit {
   isLoading: boolean = true;
-  selectedFilter: string = 'all';
   unreadCount: number = 0;
 
   allNotifications: Notification[] = [];
@@ -69,24 +62,7 @@ export class NotificationListComponent implements OnInit {
     private apiService: ApiService,
     private authService: AuthService
   ) {
-    addIcons({
-      arrowBack,
-      notificationsOutline,
-      checkmarkDone,
-      leafOutline,
-      close,
-      settingsOutline,
-      notificationsOffOutline,
-      alertCircle,
-      alertCircleOutline,
-      timeOutline,
-      informationCircle,
-      warning,
-      thermometerOutline,
-      waterOutline,
-      sunnyOutline,
-      cloudyOutline
-    });
+    addIcons({ arrowBack, alertCircleOutline, checkmarkDone, leafOutline, checkmarkCircleOutline, close, notificationsOffOutline, notificationsOutline, settingsOutline, alertCircle, timeOutline, informationCircle, warning, thermometerOutline, waterOutline, sunnyOutline, cloudyOutline });
   }
 
   ngOnInit() {
@@ -174,11 +150,7 @@ export class NotificationListComponent implements OnInit {
   }
 
   private filterNotifications() {
-    if (this.selectedFilter === 'active') {
-      this.filteredNotifications = this.allNotifications.filter(n => !n.read);
-    } else {
-      this.filteredNotifications = [...this.allNotifications];
-    }
+    this.filteredNotifications = [...this.allNotifications];
   }
 
   private separateNotificationsByDate() {
@@ -197,20 +169,25 @@ export class NotificationListComponent implements OnInit {
     this.unreadCount = this.allNotifications.filter(n => !n.read).length;
   }
 
-  onFilterChange(event: any) {
-    this.selectedFilter = event.detail.value;
-    this.filterNotifications();
-    this.separateNotificationsByDate();
-  }
 
   openNotification(notification: Notification) {
-    // Mark as read locally, but wait for user action or backend sync if needed
-    // notification.read = true; 
-    // this.calculateUnreadCount();
-
-    // Navigate based on notification type
     if (notification.plantId) {
       this.router.navigate(['/home']);
+    }
+  }
+
+  async markAsRead(notification: Notification, event: Event) {
+    event.stopPropagation();
+    if (notification.read) return;
+
+    try {
+      await this.apiService.markNotificationAsRead(parseInt(notification.id));
+      notification.read = true;
+      this.calculateUnreadCount();
+      this.filterNotifications();
+      this.separateNotificationsByDate();
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
     }
   }
 
@@ -234,6 +211,8 @@ export class NotificationListComponent implements OnInit {
     try {
       await this.apiService.markAllNotificationsAsRead(boxId);
       this.allNotifications.forEach(n => n.read = true);
+      this.filterNotifications();
+      this.separateNotificationsByDate();
       this.calculateUnreadCount();
     } catch (error) {
       console.error('Error marking all as read:', error);

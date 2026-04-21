@@ -19,6 +19,8 @@ import {
   helpCircleOutline
 } from 'ionicons/icons';
 import { Plant, GuideStep } from '../../../../core/models/plant.model';
+import { ApiService } from '../../../../core/service/api.service';
+import { AuthService } from '../../../../core/service/auth.service';
 
 @Component({
   selector: 'app-plant-guide',
@@ -39,8 +41,13 @@ export class PlantGuideComponent implements OnInit {
   isLoading: boolean = true;
   activePlant: Plant | null = null;
   guideSteps: GuideStep[] = [];
+  errorMessage: string = '';
 
-  constructor(private router: Router) {
+  constructor(
+    private router: Router,
+    private apiService: ApiService,
+    private authService: AuthService
+  ) {
     addIcons({
       'arrow-back': arrowBack,
       'book-outline': bookOutline,
@@ -57,107 +64,72 @@ export class PlantGuideComponent implements OnInit {
 
   async loadGuideData() {
     this.isLoading = true;
+    this.errorMessage = '';
 
     try {
-      // Load active plant
+      // 1. Obtener la planta activa desde el box del usuario
       await this.loadActivePlant();
 
-      // Load guide steps for the active plant
+      // 2. Si hay planta asignada, cargar los pasos de guía desde la BD
       if (this.activePlant) {
         await this.loadGuideSteps();
+      } else {
+        this.errorMessage = 'No tienes una planta asignada. Ve a la lista de plantas para seleccionar una.';
       }
     } catch (error) {
       console.error('Error loading guide data:', error);
+      this.errorMessage = 'Error al cargar la guía. Intenta de nuevo.';
     } finally {
       this.isLoading = false;
     }
   }
 
   private async loadActivePlant() {
-    return new Promise<void>((resolve) => {
-      const plantData = localStorage.getItem('activePlant');
-      if (plantData) {
-        this.activePlant = JSON.parse(plantData);
+    const boxId = this.authService.getBoxId();
+    if (!boxId) return;
+
+    try {
+      const response = await this.apiService.getBoxInfo(boxId);
+      if (response?.box?.plantId) {
+        const plantsRes = await this.apiService.getPlants();
+        const plant = plantsRes?.data?.find((p: any) => p.id === response.box.plantId);
+        if (plant) {
+          this.activePlant = {
+            ...plant,
+            imageUrl: `assets/plants/${plant.name.toLowerCase().replace(/ /g, '-')}.jpg`
+          };
+        }
       }
-      resolve();
-    });
+    } catch (error) {
+      console.error('Error cargando planta activa:', error);
+    }
   }
 
   private async loadGuideSteps() {
-    // Simulate API call - Replace with actual service
-    return new Promise<void>((resolve) => {
-      setTimeout(() => {
-        // Mock guide steps based on plant type
-        this.guideSteps = this.getMockGuideSteps();
-        resolve();
-      }, 800);
-    });
-  }
+    if (!this.activePlant) return;
 
-  private getMockGuideSteps(): GuideStep[] {
-    // Mock data - Replace with actual API call
-    return [
-      {
-        step: 1,
-        title: 'Preparación del Sistema',
-        description: 'Asegúrate de que tu GreenBox esté correctamente instalado y conectado. Verifica que el nivel de agua sea adecuado y que todos los sensores estén funcionando.',
-        tips: [
-          'Limpia el tanque de agua antes de comenzar',
-          'Verifica que la bomba funcione correctamente',
-          'Asegúrate de tener buena iluminación'
-        ]
-      },
-      {
-        step: 2,
-        title: 'Siembra de Semillas',
-        description: 'Coloca las semillas en el sustrato hidropónico siguiendo las indicaciones de profundidad. Mantén la humedad constante durante los primeros días.',
-        tips: [
-          'No entierres las semillas muy profundo',
-          'Mantén el sustrato húmedo pero no encharcado',
-          'La temperatura ideal es entre 20-25°C'
-        ]
-      },
-      {
-        step: 3,
-        title: 'Germinación',
-        description: 'Durante esta fase (5-7 días), las semillas comenzarán a germinar. Mantén la humedad alta y asegura buena iluminación.',
-        tips: [
-          'Revisa diariamente el nivel de humedad',
-          'Mantén la luz LED encendida 12-14 horas al día',
-          'No agregues nutrientes todavía'
-        ]
-      },
-      {
-        step: 4,
-        title: 'Crecimiento Vegetativo',
-        description: 'Las plántulas comenzarán a desarrollar hojas verdaderas. Es momento de agregar nutrientes al agua según las indicaciones.',
-        tips: [
-          'Comienza con dosis bajas de nutrientes',
-          'Aumenta gradualmente la concentración',
-          'Monitorea el pH del agua (6.0-6.5)'
-        ]
-      },
-      {
-        step: 5,
-        title: 'Mantenimiento',
-        description: 'Mantén un monitoreo constante de temperatura, humedad y luz. Realiza podas si es necesario para promover un crecimiento saludable.',
-        tips: [
-          'Revisa las alertas de tu GreenBox diariamente',
-          'Limpia las hojas si acumulan polvo',
-          'Ajusta la altura de la luz según el crecimiento'
-        ]
-      },
-      {
-        step: 6,
-        title: 'Cosecha',
-        description: 'Cuando la planta alcance el tamaño adecuado, estará lista para cosechar. Corta las hojas externas primero para permitir que sigan creciendo las internas.',
-        tips: [
-          'Cosecha en las mañanas para mejor sabor',
-          'Usa tijeras limpias y afiladas',
-          'No cortes más del 30% de la planta a la vez'
-        ]
+    try {
+      // Llamada real al backend: GET /guide/plant/:plantId
+      // El backend retorna { data: GuideStep[], total, message }
+      const steps = await this.apiService.getGuidesByPlant(Number(this.activePlant.id));
+
+      if (steps && steps.length > 0) {
+        // Mapear la respuesta del backend al modelo GuideStep del frontend
+        this.guideSteps = steps.map((s: any) => ({
+          step: s.step,
+          title: s.title,
+          description: s.description,
+          image: s.image || null,
+          tips: s.tips || [],
+        }));
+      } else {
+        this.errorMessage = 'Aún no hay guías registradas para esta planta.';
+        this.guideSteps = [];
       }
-    ];
+    } catch (error) {
+      console.error('Error cargando pasos de guía:', error);
+      this.errorMessage = 'Error al cargar los pasos de la guía.';
+    }
   }
 
   async refreshData(event: any) {
@@ -174,7 +146,6 @@ export class PlantGuideComponent implements OnInit {
   }
 
   openSupport() {
-    // TODO: Implement support contact functionality
     alert('Función de soporte en desarrollo. Por ahora, contacta a soporte@greenbox.com');
   }
 }

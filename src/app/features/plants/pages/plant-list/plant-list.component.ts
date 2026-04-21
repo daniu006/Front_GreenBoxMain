@@ -3,18 +3,18 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import {
   IonButton,
-  IonChip,
   IonBadge,
   IonContent,
-  IonIcon,
-  IonLabel
+  IonIcon
 } from "@ionic/angular/standalone";
 import { addIcons } from 'ionicons';
 import {
   arrowBack,
   checkmarkCircle,
   addCircleOutline,
-  leafOutline
+  leafOutline,
+  thermometerOutline,
+  waterOutline
 } from 'ionicons/icons';
 import { Plant } from '../../../../core/models/api.models';
 import { ApiService } from '../../../../core/service/api.service';
@@ -28,11 +28,9 @@ import { AuthService } from '../../../../core/service/auth.service';
   imports: [
     CommonModule,
     IonButton,
-    IonChip,
     IonBadge,
     IonContent,
-    IonIcon,
-    IonLabel
+    IonIcon
   ]
 })
 export class PlantListComponent implements OnInit {
@@ -46,12 +44,7 @@ export class PlantListComponent implements OnInit {
     private apiService: ApiService,
     private authService: AuthService
   ) {
-    addIcons({
-      'arrow-back': arrowBack,
-      'checkmark-circle': checkmarkCircle,
-      'add-circle-outline': addCircleOutline,
-      'leaf-outline': leafOutline
-    });
+    addIcons({ arrowBack, checkmarkCircle, thermometerOutline, leafOutline, waterOutline, addCircleOutline });
   }
 
   ngOnInit() {
@@ -60,10 +53,10 @@ export class PlantListComponent implements OnInit {
 
   async loadPlants() {
     try {
-      const response = await this.apiService.getPlants(); // Asumiendo que existe o lo crearé
+      const response = await this.apiService.getPlants();
       this.allPlants = response.data.map((p: any) => ({
         ...p,
-        imageUrl: `assets/plants/${p.name.toLowerCase().replace(/ /g, '-')}.jpg`,
+        imageUrl: this.getImageUrl(p.name),
         difficulty: p.maxTemperature > 30 ? 'Medio' : 'Fácil',
         benefits: ['Saludable', 'Orgánico'],
         isActive: false
@@ -149,5 +142,14 @@ export class PlantListComponent implements OnInit {
 
   onBackClick() {
     this.router.navigate(['/home']);
+  }
+
+  getImageUrl(name: string): string {
+    const specialCases: { [key: string]: string } = {
+      'crassula muscosa': 'assets/plants/Crassula%20Muscosa.png',
+      'poto': 'assets/plants/poto.avif'
+    };
+    const key = name.toLowerCase();
+    return specialCases[key] || `assets/plants/${name.toLowerCase().replace(/ /g, '-')}.jpg`;
   }
 }
